@@ -189,7 +189,7 @@ export default function Home() {
         <ProductGrid products={mensProducts} loading={loading} columns={4} />
         <div className="mt-10 text-center">
           <Link
-            to="/mens"
+            to="/mens-all"
             className="inline-flex items-center gap-2 font-sans text-[11px] font-semibold tracking-widest uppercase border border-ink text-ink px-8 py-4 hover:bg-ink hover:text-white active:scale-[0.97] transition-all duration-300"
           >
             Shop All Men's →

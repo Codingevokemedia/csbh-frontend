@@ -8,6 +8,7 @@ export default function WomensWatches() {
       title="Women's"
       subtitle="Refined elegance, Swiss precision — crafted for the extraordinary woman."
       banner={gearWatch}
+      itemNoun="product"
     />
   );
 }
