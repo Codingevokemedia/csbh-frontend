@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@theme {
+  /* Gold accent */
+  --color-gold: #CA8A04;
+  --color-gold-light: #D4970E;
+  --color-gold-muted: #9A6C00;
+
+  /* Text hierarchy */
+  --color-ink:   #2C2B35;   /* primary text */
+  --color-steel: #595667;   /* secondary text / icons */
+  --color-mist:  #9695A1;   /* placeholder / tertiary */
+
+  /* Light backgrounds */
+  --color-cream: #FAFAF7;   /* page background */
+  --color-bone:  #F4F3EF;   /* alternate section bg */
+  --color-pearl: #EEECEA;   /* subtle card bg */
+  --color-cloud: #E0DFDB;   /* borders / dividers */
+
+  /* Pure white for cards */
+  --color-white: #FFFFFF;
+
+  /* Form button / CTA warm brown (matches reference UI) */
+  --color-taupe:  #7D6B5A;
+  --color-taupe-dark: #6A5A4A;
+
+  /* Dark helpers for hero overlays, accents */
+  --color-charcoal: #1A1A1A;
+  --color-black:    #0A0A0A;
+
+  /* Typography */
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-sans:    "Montserrat", "Helvetica Neue", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Slide-in reveal animations (framer-motion initial x:±30) momentarily
+     extend off-screen elements past the viewport edge before they scroll into
+     view, causing a tiny horizontal jiggle on mobile. `clip` removes that
+     overflow without creating a scroll container — so it does NOT break the
+     sticky navbar or the sticky filter sidebar the way `overflow-x: hidden`
+     would. */
+  overflow-x: clip;
+}
+
+#root {
+  width: 100%;
+  min-height: 100svh;
+}
+
+/* Thin gold scrollbar */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--color-bone); }
+::-webkit-scrollbar-thumb { background: #CA8A04; border-radius: 2px; }
+
+/* Hide the scrollbar but keep scrolling — used on the filter sidebar so the
+   gold scrollbar thumb doesn't read as a divider line. */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+/* Gold focus ring */
+*:focus-visible {
+  outline: 2px solid #CA8A04;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+*:focus:not(:focus-visible) { outline: none; }
+
+/* Touch targets */
+button, a, [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+.icon-btn {
+  min-height: unset;
+  min-width: unset;
+  padding: 10px;
+}
+
+img {
+  image-rendering: high-quality;
+}
+
+/* Skeleton for light theme */
+@keyframes shimmer {
+  0%   { background-position: -1000px 0; }
+  100% { background-position:  1000px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #E8E7E3 25%, #F0EFEB 50%, #E8E7E3 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+@media print {
+  #announcement-bar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
