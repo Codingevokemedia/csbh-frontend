@@ -75,17 +75,17 @@ function PriceInput({ value, min, max, onChange }) {
 
   return (
     <div
-      className="flex items-center gap-1.5 flex-1"
-      style={{ height: '48px', border: '1px solid #ddd', padding: '0 14px' }}
+      className="flex items-center gap-1 flex-1 min-w-0"
+      style={{ height: '48px', border: '1px solid #ddd', padding: '0 10px' }}
     >
-      <span style={{ fontSize: '18px', color: '#aaa', fontFamily: 'inherit', lineHeight: 1 }}>$</span>
+      <span style={{ fontSize: '15px', color: '#aaa', fontFamily: 'inherit', lineHeight: 1 }}>$</span>
       <input
         type="number"
         value={local}
         onChange={e => setLocal(e.target.value)}
         onBlur={commit}
         onKeyDown={e => e.key === 'Enter' && commit()}
-        style={{ fontSize: '18px', color: '#777', width: '100%', background: 'transparent', border: 'none', outline: 'none', fontFamily: 'inherit' }}
+        style={{ fontSize: '15px', color: '#777', width: '100%', minWidth: 0, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'inherit', MozAppearance: 'textfield' }}
       />
     </div>
   );

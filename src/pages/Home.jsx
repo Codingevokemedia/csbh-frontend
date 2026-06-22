@@ -41,12 +41,27 @@ export default function Home() {
           if (!seen.has(p.id) && !isExcludedBestseller(p.id)) { seen.add(p.id); eight.push(p); }
         }
         setBestsellers(eight.slice(0, 8));
-        setMensProducts(mens.slice(0, 4));
+
+        const byId = new Map(allProducts.map(p => [String(p.id), p]));
+
+        // "Signature Timepieces" (Men's) — pin these watches first (in order),
+        // then top up with the rest of the men's collection. De-dupe, keep 4.
+        const MENS_PINNED_IDS = ['241128030', '241207008', '241115004', '241205017'];
+        const pinnedMens = MENS_PINNED_IDS.map(id => byId.get(String(id))).filter(Boolean);
+        const mensSeen = new Set();
+        const mensFour = [];
+        for (const p of [...pinnedMens, ...mens]) {
+          const id = String(p.id);
+          if (mensSeen.has(id)) continue;
+          mensSeen.add(id);
+          mensFour.push(p);
+          if (mensFour.length >= 4) break;
+        }
+        setMensProducts(mensFour);
 
         // "Crafted for Her" — pin these 4 jewelry pieces first (in order), then
         // top up with the highest-priced jewelry. De-dupe, keep 4.
         const HER_PINNED_IDS = ['251017001', '241205024', '241204009', '251113001'];
-        const byId = new Map(allProducts.map(p => [String(p.id), p]));
         const pinnedHer = HER_PINNED_IDS.map(id => byId.get(String(id))).filter(Boolean);
         const jewelry = allProducts
           .filter(p => p.category === 'jewelry')
@@ -248,6 +263,40 @@ export default function Home() {
           >
             Shop All Women's →
           </Link>
+        </div>
+      </section>
+
+      {/* Banner: Golden Watch */}
+      <section className="w-full relative">
+        <img src={goldenWatch} alt="CS Beverly Hills Golden Timepiece" className="w-full h-auto block" />
+        <div className="absolute bottom-[12%] left-1/2 -translate-x-1/2">
+          <motion.div
+            className="relative overflow-hidden cursor-pointer"
+            style={{ background: '#ffffff', border: '1px solid #ffffff' }}
+            whileHover="hover"
+            whileTap={{ scale: 0.97 }}
+            initial="rest"
+          >
+            <motion.span
+              aria-hidden="true"
+              className="absolute inset-0 pointer-events-none block"
+              style={{ background: '#0a0a0a', transformOrigin: '0% 50%' }}
+              variants={{ rest: { scaleX: 0 }, hover: { scaleX: 1 } }}
+              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            />
+            <Link
+              to="/product/241206019"
+              className="relative z-10 inline-flex items-center justify-center font-sans font-semibold uppercase whitespace-nowrap"
+              style={{ fontSize: 'clamp(8px, 1vw, 12px)', letterSpacing: '0.2em', padding: 'clamp(8px, 1vw, 14px) clamp(20px, 3vw, 48px)' }}
+            >
+              <motion.span
+                variants={{ rest: { color: '#0a0a0a' }, hover: { color: '#FFFFFF' } }}
+                transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+              >
+                Shop Now
+              </motion.span>
+            </Link>
+          </motion.div>
         </div>
       </section>
 

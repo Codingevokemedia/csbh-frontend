@@ -360,8 +360,9 @@ export async function getProductsByCollection(collectionSlug) {
       list = byKeyword(products, /limited|edition|anniversary|numbered|exclusive/);
       break;
     case 'mens':
-      // Men's + ungendered timepieces (everything that isn't women's/jewelry).
-      list = products.filter((p) => p.collection !== 'womens' && p.category !== 'jewelry');
+      // Men's + ungendered timepieces. Excludes women's, jewelry AND cufflinks —
+      // cufflinks have their own dedicated /mens-cufflinks page.
+      list = products.filter((p) => p.collection !== 'womens' && p.category !== 'jewelry' && p.category !== 'cufflinks');
       break;
     case 'womens':
       // General "Women's" landing — everything for her: watches + jewelry.

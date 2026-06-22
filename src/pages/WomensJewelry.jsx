@@ -6,6 +6,7 @@ export default function WomensJewelry() {
       collection="jewelry"
       title="Women's Jewelry"
       subtitle="Exquisite pieces crafted to complement the woman who commands every room."
+      itemNoun="product"
     />
   );
 }

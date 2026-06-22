@@ -132,7 +132,7 @@ function EmptyState({ collectionName }) {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
-export default function CollectionPage({ collection, title, subtitle, banner }) {
+export default function CollectionPage({ collection, title, subtitle, banner, itemNoun = 'timepiece' }) {
   // Support both props-driven (MensWatches etc.) and route-driven (/collections/:slug)
   const { collectionSlug } = useParams();
   const collectionData = collectionSlug ? getCollectionBySlug(collectionSlug) : null;
@@ -317,7 +317,7 @@ export default function CollectionPage({ collection, title, subtitle, banner }) 
               <p className="font-sans text-[11px] text-steel">
                 {loading
                   ? 'Loading…'
-                  : `${displayed.length} timepiece${displayed.length !== 1 ? 's' : ''}`}
+                  : `${displayed.length} ${itemNoun}${displayed.length !== 1 ? 's' : ''}`}
               </p>
               <div className="flex items-center gap-3">
                 <label

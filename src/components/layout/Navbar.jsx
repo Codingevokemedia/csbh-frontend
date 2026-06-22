@@ -496,6 +496,7 @@ export default function Navbar() {
                   onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Search watches, jewelry, cufflinks…"
                   className="flex-1 bg-transparent font-sans text-[17px] text-ink placeholder:text-mist focus:outline-none focus:ring-0 border-none"
+                  style={{ outline: 'none', boxShadow: 'none' }}
                 />
                 <button
                   type="button"
