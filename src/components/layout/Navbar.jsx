@@ -29,7 +29,7 @@ const NAV = [
     dropdown: [
       { label: 'Hope Collection',                           to: '/collections/hope-collection' },
       { label: 'Legacy Collection',                         to: '/collections/legacy-collection' },
-      { label: 'Shriners 100 Years Anniversary Collection', to: '/collections/shriners-100-years-anniversary-collection' },
+      { label: 'Shriners 100 Years Anniversary Collection', to: '/product/260619002' }, // opens the Shriners product detail page directly
       { label: 'LEGION 333 Collection',                     to: '/product/241206026' }, // LEGION 333 product (opens detail page directly)
     ],
   },
@@ -65,7 +65,7 @@ const DRAWER_SECTIONS = [
       { label: 'LIMITED EDITIONS',               to: '/limited-editions' },
       { label: 'HOPE COLLECTION',                to: '/collections/hope-collection' },
       { label: 'LEGACY COLLECTION',              to: '/collections/legacy-collection' },
-      { label: 'SHRINERS 100 YEARS ANNIVERSARY', to: '/collections/shriners-100-years-anniversary-collection' },
+      { label: 'SHRINERS 100 YEARS ANNIVERSARY', to: '/product/260619002' }, // opens the Shriners product detail page directly
       { label: 'LEGION 333 COLLECTION',          to: '/product/241206026' }, // LEGION 333 product (opens detail page directly)
     ],
   },
