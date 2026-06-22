@@ -9,7 +9,7 @@ import { logo, flagUSA } from '../../assets/index.js';
 const NAV = [
   {
     label: "Men's",
-    to: '/mens',
+    to: '/mens-all',
     dropdown: [
       { label: "Men's Watches",   to: '/mens' },
       { label: "Men's Cufflinks", to: '/mens-cufflinks' },

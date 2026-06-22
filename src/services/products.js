@@ -380,6 +380,11 @@ export async function getProductsByCollection(collectionSlug) {
     case 'limited-editions':
       list = byKeyword(products, /limited|edition|anniversary|numbered|exclusive/);
       break;
+    case 'mens-all':
+      // ALL men's pieces — watches + cufflinks (everything that isn't women's or
+      // jewelry). Used by the top-level "Men's" nav landing.
+      list = products.filter((p) => p.collection !== 'womens' && p.category !== 'jewelry');
+      break;
     case 'mens':
       // Men's + ungendered timepieces. Excludes women's, jewelry AND cufflinks —
       // cufflinks have their own dedicated /mens-cufflinks page.

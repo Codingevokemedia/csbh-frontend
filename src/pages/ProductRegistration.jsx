@@ -38,8 +38,8 @@ export default function ProductRegistration() {
           { name: 'firstName',       placeholder: 'First name',         type: 'text'  },
           { name: 'lastName',        placeholder: 'Last name',          type: 'text'  },
           { name: 'address',         placeholder: 'Address',            type: 'text'  },
-          { name: 'dateOfPurchase',  placeholder: 'Date Of Porches',    type: 'text'  },
-          { name: 'amountOfPurchase',placeholder: 'Amount OF Purches',  type: 'text'  },
+          { name: 'dateOfPurchase',  placeholder: 'Date Of Purchase',    type: 'text'  },
+          { name: 'amountOfPurchase',placeholder: 'Amount Of Purchase',  type: 'text'  },
         ].map(field => (
           <input
             key={field.name}
