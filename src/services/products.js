@@ -169,6 +169,22 @@ export function normalizeProduct(raw, catMap = null, subMap = null, attributes =
     .filter(Boolean);
   const videos = Array.from(new Set([...allPhotoUrls, ...pbMedia].filter(isVideoUrl)));
 
+  // Rich "About product" copy lives in the page-builder blocks
+  // (DescriptionOne / DescriptionTwo) — this is the long marketing write-up,
+  // separate from the short ProductDescription used elsewhere. Falls back to
+  // the plain description when no page-builder copy exists.
+  const aboutDescription = pbBlocks
+    .flatMap((b) => [b?.DescriptionOne, b?.DescriptionTwo])
+    .filter((d) => d && String(d).trim())
+    .join('\n\n');
+
+  // Long SEO-style heading for the "About product" tab, also from the
+  // page-builder blocks (HeaderTextOne / HeaderTextTwo). Falls back to the plain
+  // product name.
+  const aboutTitle = pbBlocks
+    .flatMap((b) => [b?.HeaderTextOne, b?.HeaderTextTwo])
+    .find((t) => t && String(t).trim()) || '';
+
   const categoryName = catMap ? catMap.get(Number(raw.CategoryID)) : null;
   const subName = subMap ? subMap.get(Number(raw.SubCategoryID)) : null;
   const { category, collection } = classify(title, categoryName, subName);
@@ -235,6 +251,11 @@ export function normalizeProduct(raw, catMap = null, subMap = null, attributes =
     collection,
     tags: [],
     description: raw.ProductDescription || raw.description || '',
+    // Long page-builder marketing copy for the "About product" tab; falls back
+    // to the short description so the tab is never empty.
+    aboutDescription: aboutDescription || raw.ProductDescription || raw.description || '',
+    // Long SEO-style heading for the "About product" tab; falls back to title.
+    aboutTitle: aboutTitle || title,
     specs,
     attributes: attrList,
     variants: [],

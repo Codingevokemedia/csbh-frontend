@@ -51,8 +51,8 @@ export default function ProductTabs({ product, shipping, returns }) {
       case "About product":
         return (
           <div className="tab-content">
-            <h3 className="text-xl sm:text-2xl font-sans font-bold uppercase tracking-tight mb-6 text-ink">{product.title}</h3>
-            <p className="font-sans text-sm sm:text-base text-steel leading-relaxed max-w-4xl whitespace-pre-line">{product.description}</p>
+            <h3 className="text-xl sm:text-2xl font-sans font-bold uppercase tracking-tight mb-6 text-ink">{product.aboutTitle || product.title}</h3>
+            <p className="font-sans text-sm sm:text-base text-steel leading-relaxed whitespace-pre-line break-words">{product.aboutDescription || product.description}</p>
             
             {leftDisplayMedia && (
               <div className="mt-10">
@@ -95,6 +95,12 @@ export default function ProductTabs({ product, shipping, returns }) {
         return (
           <div className="tab-content border border-cloud rounded-xl p-8 sm:p-10 bg-white max-w-4xl">
             <h3 className="font-display text-3xl mb-8 text-ink font-light">Product Details</h3>
+            {product.description && (
+              <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-2 sm:gap-5 items-start mb-8 pb-8 border-b border-cloud">
+                <span className="text-[11px] tracking-widest uppercase text-mist font-sans">Description</span>
+                <p className="font-sans text-sm text-steel leading-relaxed whitespace-pre-line">{product.description}</p>
+              </div>
+            )}
             {hasDetails ? (
               <div className="grid sm:grid-cols-2 sm:gap-x-12">
                 {/* Specifications (dynamic attributes) */}
