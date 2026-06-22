@@ -166,7 +166,7 @@ export default function ProductDetail() {
         {/* Gallery — vertical thumbnail rail (centered against the image) + main
             media. self-start stops the column from stretching to the taller info
             column (which would leave a big gap above the image). */}
-        <div className="flex items-center gap-3 sm:gap-4 self-start">
+        <div className="flex items-center gap-3 sm:gap-4 self-start lg:sticky lg:top-24">
           {/* Vertical thumbnails — scroll arrows + scrollable/swipeable rail.
               The rail is capped at ~5 thumbnails (with a peek of the next):
               5 × (thumb + gap) ≈ 360px mobile / 456px desktop. */}
@@ -375,8 +375,9 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          {/* CTAs — wishlist stays on the same line as Add to Cart, including
+              on small screens (no stacking). */}
+          <div className="flex flex-row gap-3">
             <Button
               className="flex-1"
               onClick={handleAddToCart}
