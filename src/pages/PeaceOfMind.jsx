@@ -27,14 +27,14 @@ const FEATURES = [
 
 export default function PeaceOfMind() {
   return (
-    <div className="max-w-[860px] mx-auto px-6 sm:px-10 py-12">
+    <div className="max-w-[1280px] mx-auto px-6 sm:px-10 py-12">
       <h1 className="font-sans text-xl font-bold text-ink text-center tracking-wide mb-4">PEACE OF MIND</h1>
       <p className="font-sans text-sm text-steel text-center leading-relaxed mb-10 max-w-xl mx-auto">
         When you invest in a CS Beverly Hills timepiece, you are investing with absolute confidence. Every aspect of
         your ownership experience — from purchase to service — is designed to give you complete peace of mind.
       </p>
 
-      <div className="grid sm:grid-cols-2 gap-8">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {FEATURES.map(f => (
           <div key={f.title} className="border border-cloud p-6">
             <h2 className="font-sans text-[13px] font-bold text-ink mb-3">{f.title}</h2>
