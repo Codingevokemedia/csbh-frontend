@@ -286,7 +286,8 @@ export default function CollectionPage({ collection, title, subtitle, banner, it
       )}
 
       {/* ── Body ── */}
-      <div className="px-6 sm:px-10 lg:px-16 max-w-[1400px] 2xl:max-w-[1600px] mx-auto w-full py-8">
+      {/* pb-16 = uniform 64px gap between the product grid and the footer. */}
+      <div className="px-6 sm:px-10 lg:px-16 max-w-[1400px] 2xl:max-w-[1600px] mx-auto w-full pt-8 pb-16">
 
         {/* Mobile filter + clear row */}
         <div className="flex items-center justify-between mb-6 lg:hidden">
@@ -330,7 +331,12 @@ export default function CollectionPage({ collection, title, subtitle, banner, it
                   id="sort-select"
                   value={sort}
                   onChange={e => setSort(e.target.value)}
-                  className="bg-white border border-cloud text-ink font-sans text-xs px-3 py-2 focus:outline-none focus:border-gold cursor-pointer"
+                  className="appearance-none bg-white bg-no-repeat border border-cloud text-ink font-sans text-xs pl-3 pr-9 py-2 focus:outline-none focus:border-gold cursor-pointer"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none'%3E%3Cpath d='M2 3.5l3 3 3-3' stroke='%232C2B35' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
+                    backgroundPosition: 'right 0.7rem center',
+                    backgroundSize: '10px',
+                  }}
                 >
                   {SORT_OPTIONS.map(o => (
                     <option key={o.value} value={o.value}>{o.label}</option>

@@ -12,6 +12,7 @@ import { WishlistProvider } from './contexts/WishlistContext.jsx';
 import Layout from './components/layout/Layout.jsx';
 
 import Home                   from './pages/Home.jsx';
+import MensAll                from './pages/MensAll.jsx';
 import MensWatches            from './pages/MensWatches.jsx';
 import MensCufflinks          from './pages/MensCufflinks.jsx';
 import WomensWatches          from './pages/WomensWatches.jsx';
@@ -61,6 +62,7 @@ export default function App() {
               <ScrollToTop />
               <Routes>
                 <Route path="/"                          element={<Home />} />
+                <Route path="/mens-all"                  element={<MensAll />} />
                 <Route path="/mens"                      element={<MensWatches />} />
                 <Route path="/mens-cufflinks"            element={<MensCufflinks />} />
                 <Route path="/womens"                    element={<WomensWatches />} />

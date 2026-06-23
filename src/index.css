@@ -59,7 +59,7 @@ body {
 
 #root {
   width: 100%;
-  min-height: 100svh;
+  min-height: 100dvh;
 }
 
 /* Thin gold scrollbar */
@@ -80,10 +80,30 @@ body {
 }
 *:focus:not(:focus-visible) { outline: none; }
 
+/* Form fields: no gold outline ring. Use a subtle border emphasis instead so
+   focus is still indicated without the loud gold line. */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible {
+  outline: none;
+  border-color: var(--color-ink);
+}
+
 /* Touch targets */
 button, a, [role="button"] {
   min-height: 44px;
   min-width: 44px;
+}
+/* Footer links are inline text links, not touch-target buttons — let them size
+   to their content so contact/column spacing stays uniform. (Overrides the
+   blanket 44px rule above; Tailwind's min-h-0 utility can't, because this rule
+   is unlayered and wins over layered utilities in Tailwind v4.) */
+footer a {
+  min-height: 0;
+  min-width: 0;
 }
 .icon-btn {
   min-height: unset;

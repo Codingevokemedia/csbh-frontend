@@ -152,7 +152,7 @@ export default function ProductDetail() {
   const activeIsVideo = isVideoUrl(activeMedia);
 
   return (
-    <div className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16 py-10 lg:py-16">
+    <div className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16 pt-10 lg:pt-16 pb-16">
       {/* Breadcrumb */}
       <nav className="flex items-baseline gap-2 mb-8 font-sans text-[14px] leading-none" aria-label="Breadcrumb">
         <Link to="/" className="text-mist hover:text-ink transition-colors">Home</Link>

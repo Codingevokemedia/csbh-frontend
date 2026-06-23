@@ -12,7 +12,7 @@ const pageVariants = {
 export default function Layout({ children }) {
   const location = useLocation();
   return (
-    <div className="flex flex-col min-h-[100svh] bg-cream">
+    <div className="flex flex-col min-h-[100dvh] bg-cream">
       <Navbar />
       <AnimatePresence mode="wait">
         <motion.main

@@ -380,11 +380,31 @@ export async function getProductsByCollection(collectionSlug) {
     case 'limited-editions':
       list = byKeyword(products, /limited|edition|anniversary|numbered|exclusive/);
       break;
-    case 'mens':
-      // Men's + ungendered timepieces. Excludes women's, jewelry AND cufflinks —
-      // cufflinks have their own dedicated /mens-cufflinks page.
-      list = products.filter((p) => p.collection !== 'womens' && p.category !== 'jewelry' && p.category !== 'cufflinks');
+    case 'mens-all':
+      // ALL men's products — everything that isn't women's or jewelry (watches of
+      // every type + cufflinks + men's accessories). Used by the top-level
+      // "Men's" nav landing.
+      list = products.filter((p) => p.collection !== 'womens' && p.category !== 'jewelry');
       break;
+    case 'mens': {
+      // Men's WATCHES only — strictly the "Men's Watches" and "Unisex Watches"
+      // sub-categories. Excludes women's, smartwatches, accessories
+      // (headphones/wallets), gifts/holiday bundles, jewelry and cufflinks.
+      // Falls back to the inferred collection when sub-category info is missing
+      // (mock mode).
+      const isWatchCat = (p) =>
+        p.categoryName ? /watch/i.test(p.categoryName) : p.category === 'watches';
+      list = products.filter((p) => {
+        const sub = (p.subcategory || '').toLowerCase();
+        if (sub) {
+          if (sub.includes('women')) return false;            // not women's
+          return sub.includes('unisex') || sub.includes('men'); // men's or unisex
+        }
+        // No sub-category (e.g. mock data): fall back to inferred men's watches.
+        return p.collection !== 'womens' && isWatchCat(p);
+      });
+      break;
+    }
     case 'womens':
       // General "Women's" landing — everything for her: watches + jewelry.
       list = products.filter((p) => p.collection === 'womens' || p.category === 'jewelry');

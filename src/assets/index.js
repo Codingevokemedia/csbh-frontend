@@ -9,6 +9,8 @@ import womensImg6   from '../../ref_images/Image (6).png';
 import heroBanner from '../../ref_images/presidential_office_banner_web.webp';
 import heroMillion from '../../ref_images/el_captain_watch.png';
 import goldenWatch from '../../ref_images/golden_watch_web.webp';
+import lumiereRing from '../../ref_images/Lumiere20ring.webp';
+import cufflinksBanner from '../../ref_images/cufflinks_banner_coffee.png';
 import gearWatch from '../../ref_images/gear_watch_web.webp';
 import carVideo from '../../ref_images/car_video.svg';
 import evokeCarVideo from '../../ref_images/evoke_car_video.mp4';
@@ -39,6 +41,8 @@ export {
   heroBanner,
   heroMillion,
   goldenWatch,
+  lumiereRing,
+  cufflinksBanner,
   gearWatch,
   carVideo,
   evokeCarVideo,

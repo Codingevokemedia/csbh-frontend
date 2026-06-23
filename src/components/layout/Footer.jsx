@@ -20,10 +20,10 @@ export default function Footer() {
 
       {/* Main columns */}
       <div className="max-w-[1600px] mx-auto w-full px-4 lg:px-10 py-14">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-10 divide-y sm:divide-y-0 sm:divide-x divide-cloud">
+        <div className="grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-cloud">
 
           {/* Brand */}
-          <div className="flex flex-col gap-4 sm:pr-8 lg:pr-12">
+          <div className="flex flex-col gap-4 py-6 first:pt-0 sm:py-0 sm:pr-8 lg:pr-12">
             <Link to="/" aria-label="CS Beverly Hills">
               <img src={logo} alt="CS Beverly Hills" className="h-10 w-auto object-contain" />
             </Link>
@@ -34,13 +34,13 @@ export default function Footer() {
               <p className="font-sans text-[12px] text-steel">Beverly Hills CA 90210</p>
               <a
                 href="mailto:support@craigshelly.com"
-                className="font-sans text-[12px] text-steel hover:text-ink transition-colors"
+                className="font-sans text-[12px] text-steel hover:text-ink transition-colors min-h-0 w-fit"
               >
                 support@craigshelly.com
               </a>
               <a
                 href="tel:5624721111"
-                className="font-sans text-[12px] text-steel hover:text-ink transition-colors"
+                className="font-sans text-[12px] text-steel hover:text-ink transition-colors min-h-0 w-fit"
               >
                 562-472-1111
               </a>
@@ -48,7 +48,7 @@ export default function Footer() {
           </div>
 
           {/* Customer care */}
-          <div className="flex flex-col gap-4 sm:px-8 lg:px-12">
+          <div className="flex flex-col gap-4 py-6 sm:py-0 sm:px-8 lg:px-12">
             <h3 className="font-sans text-[12px] font-semibold tracking-widest uppercase text-ink">
               Customer Care
             </h3>
@@ -57,7 +57,7 @@ export default function Footer() {
                 <li key={item.to}>
                   <Link
                     to={item.to}
-                    className="font-sans text-[12px] text-steel hover:text-ink transition-colors"
+                    className="font-sans text-[12px] text-steel hover:text-ink transition-colors min-h-0 w-fit"
                   >
                     {item.label}
                   </Link>
@@ -67,7 +67,7 @@ export default function Footer() {
           </div>
 
           {/* Discover */}
-          <div className="flex flex-col gap-4 sm:pl-8 lg:pl-12">
+          <div className="flex flex-col gap-4 py-6 last:pb-0 sm:py-0 sm:pl-8 lg:pl-12">
             <h3 className="font-sans text-[12px] font-semibold tracking-widest uppercase text-ink">
               Discover
             </h3>
@@ -76,7 +76,7 @@ export default function Footer() {
                 <li key={item.to}>
                   <Link
                     to={item.to}
-                    className="font-sans text-[12px] text-steel hover:text-ink transition-colors"
+                    className="font-sans text-[12px] text-steel hover:text-ink transition-colors min-h-0 w-fit"
                   >
                     {item.label}
                   </Link>
@@ -98,23 +98,24 @@ export default function Footer() {
             </svg>
           </button>
 
-          <p className="font-sans text-[12px] text-steel">Copyright &copy; 2025 CSBH</p>
+          <p className="font-sans text-[12px] text-steel">Copyright &copy; 2026 CSBH</p>
 
           <div className="flex items-center gap-2">
             <a
-              href="https://linkedin.com"
+              href="https://www.instagram.com/craigshelly/"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="LinkedIn"
+              aria-label="Instagram"
               className="w-8 h-8 border border-cloud bg-white flex items-center justify-center text-steel hover:text-ink hover:border-steel transition-colors"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/>
-                <circle cx="4" cy="4" r="2"/>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="2" y="2" width="20" height="20" rx="5"/>
+                <circle cx="12" cy="12" r="4"/>
+                <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
               </svg>
             </a>
             <a
-              href="https://facebook.com"
+              href="https://www.facebook.com/CraigShellyBH/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook"

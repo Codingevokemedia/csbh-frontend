@@ -189,7 +189,7 @@ export default function Home() {
         <ProductGrid products={mensProducts} loading={loading} columns={4} />
         <div className="mt-10 text-center">
           <Link
-            to="/mens"
+            to="/mens-all"
             className="inline-flex items-center gap-2 font-sans text-[11px] font-semibold tracking-widest uppercase border border-ink text-ink px-8 py-4 hover:bg-ink hover:text-white active:scale-[0.97] transition-all duration-300"
           >
             Shop All Men's →
@@ -499,7 +499,7 @@ export default function Home() {
       </section>
 
       {/* Newsletter */}
-      <section className="py-12 lg:py-20 px-6 sm:px-10 bg-cream border-t border-cloud">
+      <section className="pt-12 lg:pt-20 pb-16 px-6 sm:px-10 bg-cream border-t border-cloud">
         <div className="max-w-xl mx-auto text-center flex flex-col gap-5">
           <span className="font-sans text-[10px] tracking-[0.3em] uppercase text-gold">Stay Connected</span>
           <h2 className="font-display text-3xl sm:text-4xl text-ink font-light">First Access, Always</h2>
