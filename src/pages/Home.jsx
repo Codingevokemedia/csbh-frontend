@@ -5,7 +5,7 @@ import RaxerHero from '../components/home/RaxerHero.jsx';
 import SectionHeader from '../components/ui/SectionHeader.jsx';
 import ProductGrid from '../components/product/ProductGrid.jsx';
 import { getFeaturedProducts, getProductsByCollection, getStoreProducts, isExcludedBestseller } from '../services/products.js';
-import { goldenWatch, gearWatch, evokeCarVideo, heroMillion, empowerWatch, heroBanner, giftForYou } from '../assets/index.js';
+import { goldenWatch, gearWatch, heroMillion, empowerWatch, heroBanner, giftForYou } from '../assets/index.js';
 import { mockTestimonials } from '../data/mockTestimonials.js';
 
 export default function Home() {
@@ -88,7 +88,7 @@ export default function Home() {
       <section className="relative w-full lg:h-[calc(100svh-72px)] overflow-hidden">
         <video
           ref={videoRef}
-          src={evokeCarVideo}
+          src="https://bulkproduct-images.s3.us-east-1.amazonaws.com/2411002/24110002/Final%20Edit%2016.mp4"
           className="w-full h-auto lg:h-full lg:object-cover block"
           autoPlay
           loop
