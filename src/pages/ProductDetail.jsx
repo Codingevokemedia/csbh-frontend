@@ -40,6 +40,16 @@ export default function ProductDetail() {
   const [variants, setVariants]         = useState([]);
   const [isAdding, setIsAdding]         = useState(false);
   const [selectedAttrs, setSelectedAttrs] = useState({});
+  // 3D / AR viewer (model-viewer) — only shown when the product has a 3D asset.
+  const [is3DOpen, setIs3DOpen]         = useState(false);
+  // Platform drives the button label (AR is mobile-only). Computed once on mount.
+  const [platform] = useState(() => {
+    if (typeof navigator === 'undefined') return 'Other';
+    const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+    if (/android/i.test(ua)) return 'Android';
+    if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'iOS';
+    return 'Other';
+  });
 
   const sharedZoomRef = useRef(null);
   const tabsRef = useRef(null);
@@ -69,11 +79,10 @@ export default function ProductDetail() {
         // always carries a complete attribute set; the shopper can change them.
         const groups = buildAttributeGroups(p.attributes);
         setSelectedAttrs(Object.fromEntries(groups.map(g => [g.name, g.options[0]])));
-        // Variants come from a dedicated endpoint; load them and default the
-        // selection to the first variant.
+        // Variants come from a dedicated endpoint. Load them but leave the
+        // selection empty — the shopper picks a variant explicitly.
         getProductVariants(slug).then((vs) => {
           setVariants(vs);
-          if (vs.length) setSelectedAttrs(prev => ({ ...prev, Options: vs[0].label }));
         });
         return getProductsByCollection(p.collection);
       })
@@ -81,6 +90,12 @@ export default function ProductDetail() {
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   }, [slug]);
+
+  // Register the <csbh-3d-viewer> web component (it lazy-loads model-viewer
+  // from a CDN on first use).
+  useEffect(() => {
+    import('../lib/arViewer.js');
+  }, []);
 
   const handleActiveImgChange = (i) => {
     if (i === activeImg) return;
@@ -92,9 +107,9 @@ export default function ProductDetail() {
   if (error || !product) return <ErrorState title="Timepiece Not Found" message={error || 'We could not find this product.'} />;
 
   // The variant the shopper has picked, with its own price / id / sku / stock /
-  // images. Defaults to the first variant. Null when the product has no variants.
+  // images. Null until the shopper explicitly selects one (no auto-select).
   const selectedVariant = variants.length
-    ? variants.find(v => v.label === selectedAttrs['Options']) || variants[0]
+    ? variants.find(v => v.label === selectedAttrs['Options']) || null
     : null;
   // Price reflects the selected variant when one is chosen.
   const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(selectedVariant?.price ?? product.price);
@@ -155,10 +170,18 @@ export default function ProductDetail() {
   function selectAttr(name, opt) {
     setSelectedAttrs((s) => ({ ...s, [name]: s[name] === opt ? undefined : opt }));
   }
-  const stockLabel =
-    product.stockQuantity != null && product.stockQuantity > 0
-      ? `In stock (${product.stockQuantity})`
-      : product.inStock ? 'In stock' : 'Sold out';
+  
+  const getStockLabel = (item) => {
+
+  return item?.stockQuantity != null && item?.stockQuantity > 0 &&
+   item?.inStock ? `In Stock (${item.stockQuantity})` : 'Sold Out';
+
+};
+
+const stockLabel = selectedVariant
+  ? getStockLabel(selectedVariant)
+  : getStockLabel(product);
+
   const lifestyleImages = product.lifestyleImages || [];
   const EVOKE_SITE = import.meta.env.VITE_EVOKE_SITE_URL || 'https://www.evokemarketplace.com';
 
@@ -237,7 +260,22 @@ export default function ProductDetail() {
           )}
 
           {/* Main media */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 relative">
+            {/* View in 3D / AR — only when the product has a 3D model. Opens the
+                model-viewer popup below. */}
+            {product.model3dUrl && (
+              <button
+                type="button"
+                onClick={() => setIs3DOpen(true)}
+                className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 bg-gold text-white font-sans text-[11px] font-semibold tracking-widest uppercase px-3.5 py-2 rounded-full shadow-md hover:bg-gold/90 transition-colors"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/>
+                  <path d="M3 7l9 5 9-5M12 12v10" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/>
+                </svg>
+                {platform === 'Other' ? 'View in 3D' : 'View in 3D & AR'}
+              </button>
+            )}
             {activeIsVideo ? (
               /* Video media — no hover-zoom, native controls */
               <motion.div
@@ -269,6 +307,34 @@ export default function ProductDetail() {
                   onLoad={() => setImgLoading(false)}
                 />
               </motion.div>
+            )}
+
+            {/* 3D / AR viewer popup. <csbh-3d-viewer> lazy-loads model-viewer and
+                renders an interactive, rotatable model with an Enter-AR button on
+                supported devices. */}
+            {is3DOpen && product.model3dUrl && (
+              <div
+                className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4"
+                role="dialog"
+                aria-modal="true"
+                aria-label="3D product viewer"
+                onClick={() => setIs3DOpen(false)}
+              >
+                <div
+                  className="relative w-full max-w-3xl bg-white border border-cloud shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setIs3DOpen(false)}
+                    aria-label="Close 3D viewer"
+                    className="absolute top-2 right-2 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-bone border border-cloud text-steel hover:border-gold hover:text-gold transition-colors"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                  </button>
+                  <csbh-3d-viewer src={product.model3dUrl} style={{ display: 'block', width: '100%' }} />
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -302,9 +368,14 @@ export default function ProductDetail() {
               <span className={`w-1.5 h-1.5 rounded-full ${product.inStock ? 'bg-[#34a853]' : 'bg-mist'}`} />
               <span className={product.inStock ? 'text-[#2f7d3f]' : 'text-mist'}>{stockLabel}</span>
             </span>
-            {product.sku && (
-              <span className="font-sans text-[12px] text-mist">SKU: <span className="text-steel">{product.sku}</span></span>
+            {(selectedVariant?.sku) ? selectedVariant?.sku && (
+              <span className="font-sans text-[12px] text-mist">SKU: <span className="text-steel">{product?.sku}</span></span>
+            ) : (
+              <span className="font-sans text-[12px] text-mist">SKU: <span className="text-steel">{selectedVariant?.sku}</span></span>
             )}
+            {/* {selectedVariant.sku && (
+              <span className="font-sans text-[12px] text-mist">SKU: <span className="text-steel">{selectedVariant.sku}</span></span>
+            )} */}
             {(product.categoryName || product.category) && (
               <span className="font-sans text-[12px] text-mist capitalize">{product.categoryName || product.category}</span>
             )}
@@ -325,11 +396,71 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* Selectable attributes (dynamic — chips per attribute group). Scrolls
-              inside a fixed-height panel so the Add to Cart CTA stays in view. */}
-          {attributeGroups.length > 0 && (
+          {/* Selectable attributes + variants (dynamic). The whole panel scrolls
+              inside a fixed height so the Add to Cart CTA stays in view; the
+              variant chips additionally keep their own inner scroll — mirrors the
+              Kich product page's nested-scroll behaviour. */}
+          {(attributeGroups.length > 0 || variants.length > 0) && (
             <div className="border-y border-cloud">
               <div className="attr-scroll flex flex-col divide-y divide-cloud max-h-[336px] overflow-y-auto pr-2">
+                {/* Available Variants — selectable cards (name + price), shown
+                    inside the attributes panel with their own inner scroll.
+                    Selecting one swaps the gallery images, price, SKU, stock and
+                    the cart variant. */}
+                {variants.length > 0 && (
+                  <div className="flex flex-col gap-3 py-4">
+                    <span className="font-sans text-[11px] tracking-widest uppercase text-steel">Available Variants</span>
+                    <div className="variant-scroll flex flex-wrap gap-3 max-h-[240px] overflow-y-auto pr-2">
+                      {variants.map((v) => {
+                        const active = selectedVariant?.id === v.id;
+                        return (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => {
+                              // Clicking the already-selected variant deselects it.
+                              const nextGallery = (!active && v.images?.length ? v.images : product.gallery) || [];
+                              const nextMedia = nextGallery[0] || product.image;
+                              // Only show the skeleton if the main image will
+                              // actually change (variants without their own
+                              // images keep the product gallery, so no reload).
+                              if (nextMedia !== activeMedia) setImgLoading(true);
+                              setSelectedAttrs(s => ({ ...s, Options: active ? undefined : v.label }));
+                              setActiveImg(0);
+                            }}
+                            aria-pressed={active}
+                            disabled={!v.inStock}
+                            className={`flex flex-col items-start text-left px-4 py-2.5 rounded-lg border transition-all ${
+                              active ? 'border-gold bg-gold/10' : 'border-cloud hover:border-steel'
+                            } disabled:opacity-40 disabled:cursor-not-allowed`}
+                          >
+                            {console.log(active, "product.gallery")}
+                            <span className={`font-sans text-[13px] font-semibold ${active ? 'text-gold' : 'text-ink'}`}>{v.label}</span>
+                            <span className="font-sans text-[11px] text-steel mt-0.5">{usd2(v.price)}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {/* {selectedVariant && (
+                      <div className="flex flex-col gap-1.5">
+                        {selectedVariant.sku && (
+                          <p className="font-sans text-[13px] text-steel">
+                            SKU: <span className="text-ink font-medium">{selectedVariant.sku}</span>
+                          </p>
+                        )}
+                        {selectedVariant.stockQuantity != null && (
+                          selectedVariant.inStock ? (
+                            <p className="font-sans text-[13px] font-medium text-green-700">
+                              In Stock: {selectedVariant.stockQuantity}{selectedVariant.stockQuantity <= 5 ? ' (Hurry up!)' : ''}
+                            </p>
+                          ) : (
+                            <p className="font-sans text-[13px] font-medium text-red-600">Out of stock</p>
+                          )
+                        )}
+                      </div>
+                    )} */}
+                  </div>
+                )}
                 {attributeGroups.map((g) => (
                   <div key={g.name} className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 py-4">
                     <span className="font-sans text-[11px] tracking-widest uppercase text-steel sm:w-36 shrink-0 sm:pt-2">{g.name}</span>
@@ -356,53 +487,6 @@ export default function ProductDetail() {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Available Variants — selectable cards (name + price). Selecting one
-              swaps the gallery images, price, SKU, stock and the cart variant. */}
-          {variants.length > 0 && (
-            <div className="border-t border-cloud pt-6">
-              <p className="font-sans text-[11px] tracking-widest uppercase text-steel mb-4">Available Variants</p>
-              <div className="flex flex-wrap gap-3">
-                {variants.map((v) => {
-                  const active = selectedVariant?.id === v.id;
-                  return (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => { setSelectedAttrs(s => ({ ...s, Options: v.label })); setActiveImg(0); }}
-                      aria-pressed={active}
-                      disabled={!v.inStock}
-                      className={`flex flex-col items-start text-left px-4 py-2.5 rounded-lg border transition-all ${
-                        active ? 'border-gold bg-gold/10' : 'border-cloud hover:border-steel'
-                      } disabled:opacity-40 disabled:cursor-not-allowed`}
-                    >
-                      <span className={`font-sans text-[13px] font-semibold ${active ? 'text-gold' : 'text-ink'}`}>{v.label}</span>
-                      <span className="font-sans text-[11px] text-steel mt-0.5">{usd2(v.price)}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {selectedVariant && (
-                <div className="mt-4 flex flex-col gap-1.5">
-                  {selectedVariant.sku && (
-                    <p className="font-sans text-[13px] text-steel">
-                      SKU: <span className="text-ink font-medium">{selectedVariant.sku}</span>
-                    </p>
-                  )}
-                  {selectedVariant.stockQuantity != null && (
-                    selectedVariant.inStock ? (
-                      <p className="font-sans text-[13px] font-medium text-green-700">
-                        In Stock: {selectedVariant.stockQuantity}{selectedVariant.stockQuantity <= 5 ? ' (Hurry up!)' : ''}
-                      </p>
-                    ) : (
-                      <p className="font-sans text-[13px] font-medium text-red-600">Out of stock</p>
-                    )
-                  )}
-                </div>
-              )}
             </div>
           )}
 
@@ -523,6 +607,10 @@ export default function ProductDetail() {
         .attr-scroll::-webkit-scrollbar { width: 5px; }
         .attr-scroll::-webkit-scrollbar-thumb { background: #C9A84C; border-radius: 9999px; }
         .attr-scroll::-webkit-scrollbar-track { background: transparent; }
+        .variant-scroll { scrollbar-width: thin; scrollbar-color: #C9A84C transparent; }
+        .variant-scroll::-webkit-scrollbar { width: 5px; }
+        .variant-scroll::-webkit-scrollbar-thumb { background: #C9A84C; border-radius: 9999px; }
+        .variant-scroll::-webkit-scrollbar-track { background: transparent; }
         .thumb-scroll { scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
         .thumb-scroll::-webkit-scrollbar { width: 0; height: 0; display: none; }
         @media (max-width: 1400px) {

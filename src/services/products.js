@@ -266,6 +266,10 @@ export function normalizeProduct(raw, catMap = null, subMap = null, attributes =
     isLimitedEdition: false,
     isBestSeller: raw.IsBestSeller === 1 || raw.IsBestSeller === true || false,
     limitedEditionNote: null,
+    // URL of an interactive 3D model (GLB/GLTF), shown via the "View in 3D"
+    // button + model-viewer popup. Backend names it Primary3DUrl on the product
+    // details; blank when the product has no 3D asset.
+    model3dUrl: raw.Primary3DUrl || raw.Model3DUrl || raw.model3dUrl || null,
     // Commerce / detail fields (dynamic — blank when the backend omits them).
     sku: raw.ProductSKU || raw.sku || null,
     brand: raw.BrandName || null,
