@@ -483,6 +483,40 @@ export async function getProductById(productId) {
   return products.find((p) => String(p.id) === String(productId)) || null;
 }
 
+// Fetches a product's selectable variants from the dedicated variants endpoint
+// (GET /product/variants/:id). Each variant has its own price, stock, images
+// and SKU. Returns [] when there are none or on error, so the detail page
+// degrades gracefully (no variant section).
+export async function getProductVariants(productId) {
+  if (isMockMode()) return [];
+  try {
+    const res = await apiGet(`/product/variants/${productId}`);
+    const rows = res?.data?.variants ?? res?.variants ?? res?.data ?? [];
+    return (Array.isArray(rows) ? rows : [])
+      .filter((v) => v && typeof v === 'object' && v.IsActive !== false && v.IsActive !== 0)
+      .map((v) => {
+        const vStock = v.StockQuantity != null ? Number(v.StockQuantity) : null;
+        let images = [];
+        if (Array.isArray(v.VariantImages)) images = v.VariantImages;
+        else if (typeof v.VariantImages === 'string') {
+          try { const x = JSON.parse(v.VariantImages); if (Array.isArray(x)) images = x; } catch {/* ignore */}
+        }
+        return {
+          id: String(v.VariantID ?? v.id ?? ''),
+          label: String(v.VariantName ?? v.SKU ?? '').trim(),
+          price: Number(v.PriceInUSD ?? v.price ?? 0) || 0,
+          stockQuantity: vStock,
+          inStock: vStock == null ? true : vStock > 0,
+          images: images.filter(Boolean),
+          sku: v.SKU ?? null,
+        };
+      })
+      .filter((v) => v.label);
+  } catch {
+    return [];
+  }
+}
+
 // Detail pages route by slug, and our slug === product id.
 export async function getProductBySlug(slug) {
   if (isMockMode()) return getMockProductBySlug(slug);
@@ -497,7 +531,7 @@ export async function getProductBySlug(slug) {
 export const BESTSELLER_PINNED_IDS   = [
   // Homepage "Most Loved / Bestsellers" — first 8 fill two rows of 4 in order.
   // Row 1 (top)
-  '241207003',
+  '260623005',
   '241126011', // El Capitan Blue Gold
   '241204003',
   '241207007', // Oceanic

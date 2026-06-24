@@ -46,7 +46,7 @@ export default function Home() {
 
         // "Signature Timepieces" (Men's) — pin these watches first (in order),
         // then top up with the rest of the men's collection. De-dupe, keep 4.
-        const MENS_PINNED_IDS = ['241128030', '241207008', '241115004', '241205017'];
+        const MENS_PINNED_IDS = ['241128030', '241207008', '241205017', '241207003'];
         const pinnedMens = MENS_PINNED_IDS.map(id => byId.get(String(id))).filter(Boolean);
         const mensSeen = new Set();
         const mensFour = [];
@@ -57,6 +57,8 @@ export default function Home() {
           mensFour.push(p);
           if (mensFour.length >= 4) break;
         }
+        // Show the men's section in descending order of price.
+        mensFour.sort((a, b) => (b.price || 0) - (a.price || 0));
         setMensProducts(mensFour);
 
         // "Crafted for Her" — pin these 4 jewelry pieces first (in order), then

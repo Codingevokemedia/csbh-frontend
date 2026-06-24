@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { getProductBySlug, getProductsByCollection } from '../services/products.js';
+import { getProductBySlug, getProductsByCollection, getProductVariants } from '../services/products.js';
 import { useCart } from '../contexts/CartContext.jsx';
 import { useWishlist } from '../contexts/WishlistContext.jsx';
 import ProductGrid from '../components/product/ProductGrid.jsx';
@@ -37,6 +37,7 @@ export default function ProductDetail() {
   const [imgLoading, setImgLoading]     = useState(true);
   const [quantity, setQuantity]         = useState(1);
   const [variant, setVariant]           = useState(null);
+  const [variants, setVariants]         = useState([]);
   const [isAdding, setIsAdding]         = useState(false);
   const [selectedAttrs, setSelectedAttrs] = useState({});
 
@@ -58,6 +59,7 @@ export default function ProductDetail() {
     setError(null);
     setActiveImg(0);
     setImgLoading(true);
+    setVariants([]);
     getProductBySlug(slug)
       .then(p => {
         if (!p) throw new Error('Product not found.');
@@ -67,6 +69,12 @@ export default function ProductDetail() {
         // always carries a complete attribute set; the shopper can change them.
         const groups = buildAttributeGroups(p.attributes);
         setSelectedAttrs(Object.fromEntries(groups.map(g => [g.name, g.options[0]])));
+        // Variants come from a dedicated endpoint; load them and default the
+        // selection to the first variant.
+        getProductVariants(slug).then((vs) => {
+          setVariants(vs);
+          if (vs.length) setSelectedAttrs(prev => ({ ...prev, Options: vs[0].label }));
+        });
         return getProductsByCollection(p.collection);
       })
       .then(all => setRelated(all.filter(p2 => p2.slug !== slug).slice(0, 4)))
@@ -83,7 +91,14 @@ export default function ProductDetail() {
   if (loading) return <LoadingState fullPage message="Loading timepiece…" />;
   if (error || !product) return <ErrorState title="Timepiece Not Found" message={error || 'We could not find this product.'} />;
 
-  const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(product.price);
+  // The variant the shopper has picked, with its own price / id / sku / stock /
+  // images. Defaults to the first variant. Null when the product has no variants.
+  const selectedVariant = variants.length
+    ? variants.find(v => v.label === selectedAttrs['Options']) || variants[0]
+    : null;
+  // Price reflects the selected variant when one is chosen.
+  const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(selectedVariant?.price ?? product.price);
+  const usd2 = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n || 0);
   const wishlisted = isWishlisted(product.id);
 
   async function handleAddToCart() {
@@ -95,7 +110,7 @@ export default function ProductDetail() {
     );
     await addAndRedirect({
       productId: product.id,
-      variantId: variant?.id || product.id,
+      variantId: selectedVariant?.id || variant?.id || product.id,
       quantity,
       productTitle: product.title,
       attributes,
@@ -147,8 +162,10 @@ export default function ProductDetail() {
   const lifestyleImages = product.lifestyleImages || [];
   const EVOKE_SITE = import.meta.env.VITE_EVOKE_SITE_URL || 'https://www.evokemarketplace.com';
 
+  // Gallery swaps to the selected variant's own images when it has them.
+  const gallery = (selectedVariant?.images?.length ? selectedVariant.images : product.gallery) || [];
   // Currently-selected gallery media (photo or video).
-  const activeMedia = product.gallery?.[activeImg] || product.image;
+  const activeMedia = gallery[activeImg] || product.image;
   const activeIsVideo = isVideoUrl(activeMedia);
 
   return (
@@ -170,9 +187,9 @@ export default function ProductDetail() {
           {/* Vertical thumbnails — scroll arrows + scrollable/swipeable rail.
               The rail is capped at ~5 thumbnails (with a peek of the next):
               5 × (thumb + gap) ≈ 360px mobile / 456px desktop. */}
-          {product.gallery?.length > 1 && (
+          {gallery.length > 1 && (
             <div className="flex flex-col items-center gap-2 w-16 sm:w-20 shrink-0">
-              {product.gallery.length > 5 && (
+              {gallery.length > 5 && (
                 <button
                   type="button"
                   onClick={() => scrollThumbs(-1)}
@@ -183,7 +200,7 @@ export default function ProductDetail() {
                 </button>
               )}
               <div ref={thumbRailRef} className="thumb-scroll flex flex-col gap-2.5 overflow-y-auto overflow-x-hidden max-h-[360px] sm:max-h-[456px] w-full overscroll-contain">
-                {product.gallery.map((media, i) => {
+                {gallery.map((media, i) => {
                   const video = isVideoUrl(media);
                   return (
                     <button
@@ -206,7 +223,7 @@ export default function ProductDetail() {
                   );
                 })}
               </div>
-              {product.gallery.length > 5 && (
+              {gallery.length > 5 && (
                 <button
                   type="button"
                   onClick={() => scrollThumbs(1)}
@@ -342,26 +359,50 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* Variants */}
-          {product.variants?.length > 1 && (
-            <div>
-              <p className="font-sans text-[10px] tracking-widest uppercase text-steel mb-3">
-                Select Option: <span className="text-ink">{variant?.label || '—'}</span>
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {product.variants.map(v => (
-                  <button
-                    key={v.id}
-                    onClick={() => setVariant(v)}
-                    disabled={!v.inStock}
-                    className={`px-4 py-2.5 text-[11px] font-sans border transition-all ${
-                      variant?.id === v.id ? 'border-gold text-gold bg-gold/5' : 'border-cloud text-steel hover:border-steel'
-                    } disabled:opacity-30 disabled:line-through`}
-                  >
-                    {v.label}
-                  </button>
-                ))}
+          {/* Available Variants — selectable cards (name + price). Selecting one
+              swaps the gallery images, price, SKU, stock and the cart variant. */}
+          {variants.length > 0 && (
+            <div className="border-t border-cloud pt-6">
+              <p className="font-sans text-[11px] tracking-widest uppercase text-steel mb-4">Available Variants</p>
+              <div className="flex flex-wrap gap-3">
+                {variants.map((v) => {
+                  const active = selectedVariant?.id === v.id;
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => { setSelectedAttrs(s => ({ ...s, Options: v.label })); setActiveImg(0); }}
+                      aria-pressed={active}
+                      disabled={!v.inStock}
+                      className={`flex flex-col items-start text-left px-4 py-2.5 rounded-lg border transition-all ${
+                        active ? 'border-gold bg-gold/10' : 'border-cloud hover:border-steel'
+                      } disabled:opacity-40 disabled:cursor-not-allowed`}
+                    >
+                      <span className={`font-sans text-[13px] font-semibold ${active ? 'text-gold' : 'text-ink'}`}>{v.label}</span>
+                      <span className="font-sans text-[11px] text-steel mt-0.5">{usd2(v.price)}</span>
+                    </button>
+                  );
+                })}
               </div>
+
+              {selectedVariant && (
+                <div className="mt-4 flex flex-col gap-1.5">
+                  {selectedVariant.sku && (
+                    <p className="font-sans text-[13px] text-steel">
+                      SKU: <span className="text-ink font-medium">{selectedVariant.sku}</span>
+                    </p>
+                  )}
+                  {selectedVariant.stockQuantity != null && (
+                    selectedVariant.inStock ? (
+                      <p className="font-sans text-[13px] font-medium text-green-700">
+                        In Stock: {selectedVariant.stockQuantity}{selectedVariant.stockQuantity <= 5 ? ' (Hurry up!)' : ''}
+                      </p>
+                    ) : (
+                      <p className="font-sans text-[13px] font-medium text-red-600">Out of stock</p>
+                    )
+                  )}
+                </div>
+              )}
             </div>
           )}
 
