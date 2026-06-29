@@ -4,6 +4,7 @@
 // network/API is unavailable, so the design always renders.
 
 import { apiGet, isMockMode } from './api.js';
+import { listHomepageProducts } from './homepageProducts.js';
 import {
   mockProducts,
   getFeaturedMockProducts,
@@ -441,6 +442,36 @@ export async function getProductsByCollection(collectionSlug) {
   }
   // Never leave a section empty — fall back to the full catalogue.
   return list && list.length ? list : products;
+}
+
+// ── Admin-curated homepage sections ──────────────────────────────────────────
+// Returns the products an admin has pinned to a homepage section (via the CSBH
+// backend), hydrated from the live catalogue and sorted by display_order.
+// Returns [] when the section has no active managed products — callers then fall
+// back to their existing default logic, so nothing breaks if it's unconfigured.
+export async function getHomepageSection(section) {
+  if (isMockMode()) return [];
+  try {
+    const rows = await listHomepageProducts(section, { activeOnly: true });
+    if (!rows.length) return [];
+    const { products } = await loadStore();
+    const byId = new Map(products.map((p) => [String(p.id), p]));
+    const ordered = rows
+      .slice()
+      .sort((a, b) => (Number(a.display_order) || 0) - (Number(b.display_order) || 0));
+    const out = [];
+    for (const r of ordered) {
+      const pid = String(r.product_id);
+      let prod = byId.get(pid);
+      if (!prod) {
+        try { prod = await getProductById(pid); } catch { prod = null; }
+      }
+      if (prod) out.push(prod);
+    }
+    return out;
+  } catch {
+    return [];
+  }
 }
 
 // Single product detail. Tries the rich detail endpoint (gallery + description),
