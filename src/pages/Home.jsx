@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import RaxerHero from '../components/home/RaxerHero.jsx';
 import SectionHeader from '../components/ui/SectionHeader.jsx';
 import ProductGrid from '../components/product/ProductGrid.jsx';
-import { getFeaturedProducts, getProductsByCollection, getStoreProducts, isExcludedBestseller } from '../services/products.js';
-import { goldenWatch, gearWatch, evokeCarVideo, heroMillion, empowerWatch, heroBanner, giftForYou } from '../assets/index.js';
+import { getFeaturedProducts, getProductsByCollection, getStoreProducts, getHomepageSection, isExcludedBestseller } from '../services/products.js';
+import { goldenWatch, gearWatch, heroMillion, empowerWatch, heroBanner, giftForYou } from '../assets/index.js';
 import { mockTestimonials } from '../data/mockTestimonials.js';
 
 export default function Home() {
@@ -29,8 +29,12 @@ export default function Home() {
       getProductsByCollection('mens'),
       getProductsByCollection('womens'),
       getStoreProducts(),
+      // Admin-curated overrides (empty arrays when a section isn't configured).
+      getHomepageSection('bestsellers'),
+      getHomepageSection('mens'),
+      getHomepageSection('womens'),
     ])
-      .then(([best, mens, womens, allProducts]) => {
+      .then(([best, mens, womens, allProducts, cmsBest, cmsMens, cmsWomens]) => {
         // Lead with the real best-sellers; if fewer than 8 are flagged, top up
         // with other CS Beverly Hills pieces so the section fills two rows of 4.
         const eight = [...best];
@@ -40,7 +44,9 @@ export default function Home() {
           // Skip products explicitly excluded from the best-seller rail.
           if (!seen.has(p.id) && !isExcludedBestseller(p.id)) { seen.add(p.id); eight.push(p); }
         }
-        setBestsellers(eight.slice(0, 8));
+        // Admin-curated bestsellers win when configured; otherwise the
+        // computed best-seller rail above is used.
+        setBestsellers((cmsBest.length ? cmsBest : eight).slice(0, 8));
 
         const byId = new Map(allProducts.map(p => [String(p.id), p]));
 
@@ -59,7 +65,8 @@ export default function Home() {
         }
         // Show the men's section in descending order of price.
         mensFour.sort((a, b) => (b.price || 0) - (a.price || 0));
-        setMensProducts(mensFour);
+        // Admin-curated men's section wins when configured.
+        setMensProducts((cmsMens.length ? cmsMens : mensFour).slice(0, 4));
 
         // "Crafted for Her" — pin these 4 jewelry pieces first (in order), then
         // top up with the highest-priced jewelry. De-dupe, keep 4.
@@ -77,7 +84,8 @@ export default function Home() {
           her.push(p);
           if (her.length >= 4) break;
         }
-        setWomensProducts(her);
+        // Admin-curated women's section wins when configured.
+        setWomensProducts((cmsWomens.length ? cmsWomens : her).slice(0, 4));
       })
       .finally(() => setLoading(false));
   }, []);
@@ -88,7 +96,7 @@ export default function Home() {
       <section className="relative w-full lg:h-[calc(100svh-72px)] overflow-hidden">
         <video
           ref={videoRef}
-          src={evokeCarVideo}
+          src="https://bulkproduct-images.s3.us-east-1.amazonaws.com/2411002/24110002/Final%20Edit%2016.mp4"
           className="w-full h-auto lg:h-full lg:object-cover block"
           autoPlay
           loop
