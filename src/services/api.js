@@ -20,7 +20,7 @@ function cleanUrl(raw) {
 // Defaults to the shared EVOKE backend (same one the Kich storefront uses) so
 // the app talks to real data out of the box. Override with VITE_EVOKE_API_BASE.
 const BASE_URL = cleanUrl(
-  import.meta.env.VITE_EVOKE_API_BASE || 'http://localhost:3000/api',
+  import.meta.env.VITE_EVOKE_API_BASE || 'https://j030wg44-3000.usw3.devtunnels.ms/api',
 );
 const API_KEY  = import.meta.env.VITE_EVOKE_API_KEY  || '';
 const TOKEN_KEY = 'kich.evoke.token';
@@ -97,6 +97,18 @@ export async function apiPut(path, body = {}, options = {}) {
   if (IS_MOCK_MODE) throw new Error('MOCK_MODE');
   const res = await fetch(`${BASE_URL}${path}`, {
     method: 'PUT',
+    headers: buildHeaders(options.headers),
+    credentials: 'include',
+    body: JSON.stringify(body),
+    signal: options.signal,
+  });
+  return handleResponse(res);
+}
+
+export async function apiPatch(path, body = {}, options = {}) {
+  if (IS_MOCK_MODE) throw new Error('MOCK_MODE');
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: 'PATCH',
     headers: buildHeaders(options.headers),
     credentials: 'include',
     body: JSON.stringify(body),

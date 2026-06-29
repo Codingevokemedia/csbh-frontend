@@ -38,6 +38,9 @@ import PeaceOfMind            from './pages/PeaceOfMind.jsx';
 import CartBridge             from './pages/CartBridge.jsx';
 import AIContentDisclosure    from './pages/AIContentDisclosure.jsx';
 import Auth                   from './pages/Auth.jsx';
+import AdminLogin             from './pages/admin/AdminLogin.jsx';
+import HomepageProductsAdmin  from './pages/admin/HomepageProductsAdmin.jsx';
+import RequireAdmin           from './components/admin/RequireAdmin.jsx';
 
 function NotFound() {
   return (
@@ -90,6 +93,8 @@ export default function App() {
                 <Route path="/ai-content-disclosure"     element={<AIContentDisclosure />} />
                 <Route path="/cart-bridge"               element={<CartBridge />} />
                 <Route path="/auth"                      element={<Auth />} />
+                <Route path="/admin/login"               element={<AdminLogin />} />
+                <Route path="/admin/homepage-products"   element={<RequireAdmin><HomepageProductsAdmin /></RequireAdmin>} />
                 <Route path="*"                          element={<NotFound />} />
               </Routes>
             </Layout>
