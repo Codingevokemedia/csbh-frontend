@@ -55,28 +55,28 @@ export default function ProductTabs({ product, shipping, returns }) {
             <p className="font-sans text-sm sm:text-base text-steel leading-relaxed whitespace-pre-line break-words">{product.aboutDescription || product.description}</p>
             
             {leftDisplayMedia && (
-              <div className="mt-10">
+              <div className="mt-10 flex justify-center">
                 {isVideoUrl(leftDisplayMedia) ? (
                   <video
                     src={leftDisplayMedia}
                     controls
                     playsInline
                     preload="metadata"
-                    className="w-full rounded-xl border border-cloud bg-black aspect-video"
+                    className="w-full max-w-3xl rounded-xl border border-cloud bg-black aspect-video"
                   />
                 ) : (
                   <img
                     src={leftDisplayMedia}
                     alt={product.title}
-                    className="w-full rounded-xl border border-cloud shadow-sm"
+                    className="w-auto max-w-full sm:max-w-2xl max-h-[600px] object-contain rounded-xl border border-cloud shadow-sm"
                   />
                 )}
               </div>
             )}
 
-            {/* Product video(s) from the backend page-builder media — large, full-width player */}
+            {/* Product video(s) from the backend page-builder media. */}
             {videos.length > 0 && (
-              <div className="mt-10 flex flex-col gap-10">
+              <div className="mt-10 flex flex-col items-center gap-10">
                 {videos.map((src, i) => (
                   <video
                     key={i}
@@ -84,7 +84,7 @@ export default function ProductTabs({ product, shipping, returns }) {
                     controls
                     playsInline
                     preload="metadata"
-                    className="w-full rounded-xl border border-cloud bg-black aspect-video"
+                    className="w-full max-w-3xl rounded-xl border border-cloud bg-black aspect-video"
                   />
                 ))}
               </div>
