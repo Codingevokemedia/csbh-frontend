@@ -22,13 +22,6 @@ const values = [
   },
 ];
 
-const team = [
-  { name: 'Christina Saunders', role: 'Founder & Creative Director' },
-  { name: 'James Harrington', role: 'Head of Acquisitions' },
-  { name: 'Sophia Lin', role: 'Client Relations' },
-  { name: 'Marcus Webb', role: 'Horological Specialist' },
-];
-
 export default function About() {
   return (
     <div>
@@ -109,39 +102,6 @@ export default function About() {
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Team */}
-      <section className="py-20 px-6 sm:px-10 lg:px-16 max-w-[1400px] 2xl:max-w-[1600px] mx-auto">
-        <SectionHeader
-          eyebrow="The People Behind the Brand"
-          title="Our Team"
-          className="mb-14"
-        />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {team.map((member, i) => (
-            <motion.div
-              key={member.name}
-              className="flex flex-col gap-4"
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.45, delay: i * 0.08 }}
-            >
-              <div className="aspect-square bg-bone border border-cloud flex items-center justify-center">
-                <div className="w-20 h-20 rounded-full bg-pearl border border-cloud flex items-center justify-center">
-                  <span className="font-display text-3xl text-steel font-light">
-                    {member.name.charAt(0)}
-                  </span>
-                </div>
-              </div>
-              <div>
-                <p className="font-sans text-sm font-medium text-ink">{member.name}</p>
-                <p className="font-sans text-[10px] tracking-wide uppercase text-mist mt-0.5">{member.role}</p>
-              </div>
-            </motion.div>
-          ))}
         </div>
       </section>
 

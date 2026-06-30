@@ -54,12 +54,22 @@ export default function ProductDetail() {
   const sharedZoomRef = useRef(null);
   const tabsRef = useRef(null);
   const thumbRailRef = useRef(null);
+  const lifestyleRef = useRef(null);
 
   // "Read more" jumps to the About Product section below (its default tab).
   const scrollToAbout = () => tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // Up/down arrows scroll the vertical thumbnail rail by ~2 thumbnails.
   const scrollThumbs = (dir) => thumbRailRef.current?.scrollBy({ top: dir * 182, behavior: 'smooth' });
+
+  // Slide the lifestyle carousel by one image (visible 4 on desktop, 2 on mobile).
+  const scrollLifestyle = (dir) => {
+    const el = lifestyleRef.current;
+    if (!el) return;
+    const item = el.querySelector(':scope > *');
+    const step = item ? item.offsetWidth + 16 : el.clientWidth / 2;
+    el.scrollBy({ left: dir * step, behavior: 'smooth' });
+  };
 
   const { addAndRedirect, loading: cartLoading } = useCart();
   const { isWishlisted, toggle } = useWishlist();
@@ -70,23 +80,25 @@ export default function ProductDetail() {
     setActiveImg(0);
     setImgLoading(true);
     setVariants([]);
+    let currentId = null;
     getProductBySlug(slug)
       .then(p => {
         if (!p) throw new Error('Product not found.');
+        currentId = String(p.id);
         setProduct(p);
         setVariant(p.variants?.find(v => v.inStock) || p.variants?.[0] || null);
         // Pre-select the first option of each attribute group so the cart
         // always carries a complete attribute set; the shopper can change them.
         const groups = buildAttributeGroups(p.attributes);
         setSelectedAttrs(Object.fromEntries(groups.map(g => [g.name, g.options[0]])));
-        // Variants come from a dedicated endpoint. Load them but leave the
-        // selection empty — the shopper picks a variant explicitly.
-        getProductVariants(slug).then((vs) => {
+        // Variants come from a dedicated endpoint — keyed by the real product id
+        // (the URL slug may now be the product name).
+        getProductVariants(p.id).then((vs) => {
           setVariants(vs);
         });
         return getProductsByCollection(p.collection);
       })
-      .then(all => setRelated(all.filter(p2 => p2.slug !== slug).slice(0, 4)))
+      .then(all => setRelated(all.filter(p2 => String(p2.id) !== currentId).slice(0, 4)))
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   }, [slug]);
@@ -138,17 +150,27 @@ export default function ProductDetail() {
     if (!zoomEl || !imageUrl) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const zoomLevel = 2.5; 
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const zoomLevel = 2.5;
+    const xPos = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const yPos = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
 
-    const xPos = Math.max(0, Math.min(x, rect.width));
-    const yPos = Math.max(0, Math.min(y, rect.height));
+    // Match the thumbnail's object-cover rendering so the zoom never stretches:
+    // scale the image to COVER the box (preserving aspect), then magnify.
+    const img = e.currentTarget.querySelector('img');
+    const natW = img?.naturalWidth || rect.width;
+    const natH = img?.naturalHeight || rect.height;
+    const coverScale = Math.max(rect.width / natW, rect.height / natH);
+    const coverW = natW * coverScale; // object-cover rendered size (≥ box)
+    const coverH = natH * coverScale;
+    const offsetX = (coverW - rect.width) / 2;  // amount cropped each side
+    const offsetY = (coverH - rect.height) / 2;
 
     zoomEl.style.display = "block";
     zoomEl.style.backgroundImage = `url("${imageUrl}")`;
-    zoomEl.style.backgroundSize = `${rect.width * zoomLevel}px ${rect.height * zoomLevel}px`;
-    zoomEl.style.backgroundPosition = `-${xPos * zoomLevel - zoomEl.offsetWidth / 2}px -${yPos * zoomLevel - zoomEl.offsetHeight / 2}px`;
+    zoomEl.style.backgroundSize = `${coverW * zoomLevel}px ${coverH * zoomLevel}px`;
+    zoomEl.style.backgroundPosition =
+      `-${(xPos + offsetX) * zoomLevel - zoomEl.offsetWidth / 2}px ` +
+      `-${(yPos + offsetY) * zoomLevel - zoomEl.offsetHeight / 2}px`;
     document.body.style.cursor = "zoom-in";
   };
 
@@ -564,12 +586,40 @@ const stockLabel = selectedVariant
           the technical gallery and shown just above the related products. */}
       {lifestyleImages.length > 0 && (
         <div className="mt-16 lg:mt-20">
-          <h2 className="font-display text-2xl sm:text-3xl text-ink font-light uppercase tracking-wider mb-6">Lifestyle</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
+          <div className="flex items-end justify-between mb-6 gap-4">
+            <h2 className="font-display text-2xl sm:text-3xl text-ink font-light uppercase tracking-wider">Lifestyle</h2>
+            {/* Slider arrows — only when there are more images than fit (4). */}
+            {lifestyleImages.length > 4 && (
+              <div className="hidden sm:flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => scrollLifestyle(-1)}
+                  aria-label="Previous lifestyle images"
+                  className="w-9 h-9 rounded-full border border-cloud flex items-center justify-center text-steel hover:border-gold hover:text-gold transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollLifestyle(1)}
+                  aria-label="Next lifestyle images"
+                  className="w-9 h-9 rounded-full border border-cloud flex items-center justify-center text-steel hover:border-gold hover:text-gold transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Sliding strip: 4 visible on desktop, 2 on mobile; swipe / arrows to slide. */}
+          <div
+            ref={lifestyleRef}
+            className="no-scrollbar flex gap-3 lg:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth"
+          >
             {lifestyleImages.map((src, i) => (
               <div
                 key={i}
-                className="overflow-hidden bg-bone aspect-[4/5] cursor-zoom-in"
+                className="snap-start shrink-0 w-[42%] sm:w-[calc(25%-12px)] overflow-hidden bg-bone aspect-[4/5] cursor-zoom-in"
                 onMouseMove={(e) => handleZoomMove(e, src)}
                 onMouseLeave={handleZoomLeave}
               >
@@ -582,6 +632,15 @@ const stockLabel = selectedVariant
               </div>
             ))}
           </div>
+
+          {/* Mobile-only swipe affordance (desktop has arrow buttons). */}
+          {lifestyleImages.length > 2 && (
+            <div className="sm:hidden flex items-center justify-center gap-2 mt-3 text-mist">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <span className="font-sans text-[11px] tracking-widest uppercase">Swipe</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </div>
+          )}
         </div>
       )}
 
@@ -596,7 +655,7 @@ const stockLabel = selectedVariant
       {/* Shared Zoom Panel */}
       <div
         ref={sharedZoomRef}
-        className="shared-zoom-panel fixed top-[20%] right-[100px] w-[500px] h-[500px] border border-cloud bg-white z-[9999] hidden pointer-events-none shadow-2xl bg-no-repeat bg-white"
+        className="shared-zoom-panel fixed top-[20%] left-[48%] w-[500px] h-[500px] border border-cloud bg-white z-[9999] hidden pointer-events-none shadow-2xl bg-no-repeat bg-white"
       />
 
       <style dangerouslySetInnerHTML={{ __html: `
@@ -615,7 +674,7 @@ const stockLabel = selectedVariant
         .thumb-scroll::-webkit-scrollbar { width: 0; height: 0; display: none; }
         @media (max-width: 1400px) {
           .shared-zoom-panel {
-            right: 40px;
+            left: 46%;
             width: 450px;
             height: 450px;
           }

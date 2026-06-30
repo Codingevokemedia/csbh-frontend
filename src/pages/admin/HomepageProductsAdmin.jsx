@@ -146,12 +146,12 @@ export default function HomepageProductsAdmin() {
 
   return (
     <div className="bg-cream min-h-[100dvh]">
-      <div className="max-w-[1180px] mx-auto px-6 sm:px-10 py-12">
+      <div className="max-w-[1180px] mx-auto px-4 sm:px-10 py-8 sm:py-12">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 mb-6">
+        <div className="flex items-start justify-between gap-3 mb-6">
           <div className="flex flex-col gap-1">
             <span className="font-sans text-[10px] tracking-[0.35em] uppercase font-semibold text-gold">Admin</span>
-            <h1 className="font-display text-3xl sm:text-4xl text-ink font-light">CSBH Homepage Products</h1>
+            <h1 className="font-display text-2xl sm:text-4xl text-ink font-light">CSBH Homepage Products</h1>
             <p className="font-sans text-sm text-steel mt-1 max-w-2xl">
               Pick which Evoke Marketplace watches appear on the homepage. Search a product,
               click <b className="text-ink font-semibold">Add</b>, then reorder or enable/disable as needed.
@@ -215,7 +215,7 @@ export default function HomepageProductsAdmin() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-10">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
           {/* ── Search + add ───────────────────────────────────────────── */}
           <section>
             <h2 className="font-sans text-[11px] tracking-widest uppercase text-steel mb-3">1 · Search & Add Products</h2>
@@ -244,11 +244,11 @@ export default function HomepageProductsAdmin() {
               {results.map((p) => {
                 const added = alreadyAdded(p.id);
                 return (
-                  <div key={p.id} className="flex items-center gap-3 border border-cloud bg-white p-2.5 rounded-lg">
-                    <img src={p.image || ''} alt="" className="w-16 h-16 object-cover bg-pearl rounded shrink-0" aria-hidden="true" />
+                  <div key={p.id} className="flex items-center gap-2.5 sm:gap-3 border border-cloud bg-white p-2.5 rounded-lg">
+                    <img src={p.image || ''} alt="" className="w-14 h-14 sm:w-16 sm:h-16 object-cover bg-pearl rounded shrink-0" aria-hidden="true" />
                     <div className="flex-1 min-w-0">
                       <p className="font-sans text-[13px] text-ink truncate">{p.name}</p>
-                      <p className="font-sans text-[11px] text-mist">ID: {p.id}{p.sku ? ` · SKU: ${p.sku}` : ''}</p>
+                      <p className="font-sans text-[11px] text-mist truncate">ID: {p.id}{p.sku ? ` · SKU: ${p.sku}` : ''}</p>
                       <p className="font-sans text-[12px] font-semibold text-gold mt-0.5">{usd(p.price)}</p>
                     </div>
                     <button
@@ -298,11 +298,11 @@ export default function HomepageProductsAdmin() {
                   return (
                     <div
                       key={row.id}
-                      className={`flex items-center gap-3 border bg-white p-2.5 rounded-lg ${row.is_active ? 'border-cloud' : 'border-cloud bg-bone/40'}`}
+                      className={`flex items-center gap-2 sm:gap-3 border bg-white p-2 sm:p-2.5 rounded-lg ${row.is_active ? 'border-cloud' : 'border-cloud bg-bone/40'}`}
                     >
                       {/* Position + reorder */}
-                      <div className="flex items-center gap-1.5">
-                        <span className={`w-6 text-center font-sans text-[12px] font-semibold ${overTarget ? 'text-mist' : 'text-ink'}`}>{i + 1}</span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className={`w-4 sm:w-6 text-center font-sans text-[12px] font-semibold ${overTarget ? 'text-mist' : 'text-ink'}`}>{i + 1}</span>
                         <div className="flex flex-col">
                           <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up"
                             className="w-6 h-5 flex items-center justify-center text-steel hover:text-ink disabled:opacity-25 text-[11px]">▲</button>
@@ -310,10 +310,10 @@ export default function HomepageProductsAdmin() {
                             className="w-6 h-5 flex items-center justify-center text-steel hover:text-ink disabled:opacity-25 text-[11px]">▼</button>
                         </div>
                       </div>
-                      <img src={row.product?.image || ''} alt="" className={`w-16 h-16 object-cover bg-pearl rounded shrink-0 ${row.is_active ? '' : 'grayscale opacity-60'}`} aria-hidden="true" />
+                      <img src={row.product?.image || ''} alt="" className={`w-12 h-12 sm:w-16 sm:h-16 object-cover bg-pearl rounded shrink-0 ${row.is_active ? '' : 'grayscale opacity-60'}`} aria-hidden="true" />
                       <div className="flex-1 min-w-0">
                         <p className="font-sans text-[13px] text-ink truncate">{row.product?.title || `Product ${row.product_id}`}</p>
-                        <p className="font-sans text-[11px] text-mist">ID: {row.product_id}{row.product?.sku ? ` · SKU: ${row.product.sku}` : ''}</p>
+                        <p className="font-sans text-[11px] text-mist truncate">ID: {row.product_id}{row.product?.sku ? ` · SKU: ${row.product.sku}` : ''}</p>
                         {row.product?.price != null && (
                           <p className="font-sans text-[12px] font-semibold text-gold mt-0.5">{usd(row.product.price)}</p>
                         )}
