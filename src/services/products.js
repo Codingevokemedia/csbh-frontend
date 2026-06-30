@@ -104,6 +104,17 @@ function classify(name, categoryName, subCategoryName) {
   return { category: 'watches', collection: 'mens' };
 }
 
+// Builds a URL-friendly slug from a product name (e.g. "Oceanic White" →
+// "oceanic-white"). Used so product URLs read as the name, not the numeric id.
+export function slugify(str) {
+  return String(str || '')
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')   // strip accents
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')        // non-alphanumerics → hyphens
+    .replace(/^-+|-+$/g, '');           // trim hyphens
+}
+
 // Maps a raw EVOKE product row to the internal shape. `catMap`/`subMap` resolve
 // CategoryID/SubCategoryID → name so we can classify the product.
 export function normalizeProduct(raw, catMap = null, subMap = null, attributes = []) {
@@ -239,9 +250,10 @@ export function normalizeProduct(raw, catMap = null, subMap = null, attributes =
   return {
     id: String(id),
     title,
-    // Detail pages resolve by id, so the slug IS the id — links stay stable
-    // without a separate slug/handle field on the backend.
-    slug: String(id),
+    // URL handle derived from the product name so links read as the name, not
+    // the id (e.g. /product/oceanic-white). getProductBySlug resolves it back to
+    // the product; numeric-id links still work for backward compatibility.
+    slug: slugify(title) || String(id),
     price,
     compareAtPrice,
     image,
@@ -552,10 +564,27 @@ export async function getProductVariants(productId) {
   }
 }
 
-// Detail pages route by slug, and our slug === product id.
+// Resolve a product from a URL slug. Slugs are name-based (e.g. "oceanic-white"),
+// but we stay backward-compatible with numeric-id links (e.g. /product/241206026)
+// and name-id combos (e.g. "oceanic-white-251010004").
 export async function getProductBySlug(slug) {
   if (isMockMode()) return getMockProductBySlug(slug);
-  return getProductById(slug);
+  const s = String(slug || '').trim();
+  if (!s) return null;
+
+  // 1) Purely numeric → it's a product id (old links, hardcoded nav links).
+  if (/^\d+$/.test(s)) return getProductById(s);
+
+  // 2) Name slug → find the matching product in the catalogue, then load detail.
+  const { products } = await loadStore();
+  const match = products.find((p) => p.slug === s);
+  if (match) return getProductById(match.id);
+
+  // 3) Fallback: a trailing numeric id in the slug (name-id form).
+  const trailingId = s.match(/(\d{4,})$/);
+  if (trailingId) return getProductById(trailingId[1]);
+
+  return null;
 }
 
 // ── Curated best-seller overrides ────────────────────────────────────────────

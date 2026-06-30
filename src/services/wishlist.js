@@ -67,5 +67,5 @@ export function buildEvokeWishlistUrl() {
 }
 
 export function redirectToMarketplaceWishlist() {
-  window.location.href = buildEvokeWishlistUrl();
+  window.open(buildEvokeWishlistUrl(), '_blank', 'noopener,noreferrer');
 }
