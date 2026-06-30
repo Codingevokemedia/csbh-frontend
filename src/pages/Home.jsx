@@ -96,7 +96,7 @@ export default function Home() {
       <section className="relative w-full lg:h-[calc(100svh-72px)] overflow-hidden">
         <video
           ref={videoRef}
-          src="https://bulkproduct-images.s3.us-east-1.amazonaws.com/2411002/24110002/Final%20Edit%2016.mp4"
+          src="https://bulkproduct-images.s3.us-east-1.amazonaws.com/2411002/24110002/Raxer+Updated.mp4"
           className="w-full h-auto lg:h-full lg:object-cover block"
           autoPlay
           loop
@@ -496,14 +496,6 @@ export default function Home() {
                 </div>
               </motion.div>
             ))}
-          </div>
-          <div className="mt-10 text-center">
-            <Link
-              to="/testimonials"
-              className="inline-flex items-center gap-2 font-sans text-[11px] font-semibold tracking-widest uppercase border border-ink text-ink px-8 py-4 hover:bg-ink hover:text-white active:scale-[0.97] transition-all duration-300"
-            >
-              Read All Reviews
-            </Link>
           </div>
         </div>
       </section>

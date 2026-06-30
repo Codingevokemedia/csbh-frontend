@@ -20,7 +20,7 @@ function cleanUrl(raw) {
 // Defaults to the shared EVOKE backend (same one the Kich storefront uses) so
 // the app talks to real data out of the box. Override with VITE_EVOKE_API_BASE.
 const BASE_URL = cleanUrl(
-  import.meta.env.VITE_EVOKE_API_BASE || 'https://j030wg44-3000.usw3.devtunnels.ms/api',
+  import.meta.env.VITE_EVOKE_API_BASE || 'http://localhost:3000/api',
 );
 const API_KEY  = import.meta.env.VITE_EVOKE_API_KEY  || '';
 const TOKEN_KEY = 'kich.evoke.token';
