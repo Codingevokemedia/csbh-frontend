@@ -4,9 +4,9 @@ import { useState } from 'react';
 // are simply never passed in (the spec requires hiding blanks, not labelling them).
 function DetailRow({ label, value }) {
   return (
-    <div className="flex justify-between gap-6 py-3 border-b border-cloud last:border-0">
-      <span className="font-sans text-[11px] tracking-widest uppercase text-mist shrink-0">{label}</span>
-      <span className="font-sans text-[13px] text-ink text-right break-words">{value}</span>
+    <div className="grid grid-cols-1 sm:grid-cols-[minmax(110px,42%)_1fr] gap-1 sm:gap-4 py-3 border-b border-cloud last:border-0">
+      <span className="font-sans text-[11px] tracking-widest uppercase text-mist sm:pt-[3px]">{label}</span>
+      <span className="font-sans text-[13px] text-ink leading-relaxed break-words">{value}</span>
     </div>
   );
 }
