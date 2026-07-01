@@ -5,7 +5,7 @@ import RaxerHero from '../components/home/RaxerHero.jsx';
 import SectionHeader from '../components/ui/SectionHeader.jsx';
 import ProductGrid from '../components/product/ProductGrid.jsx';
 import { getFeaturedProducts, getProductsByCollection, getStoreProducts, getHomepageSection, isExcludedBestseller } from '../services/products.js';
-import { goldenWatch, gearWatch, heroMillion, empowerWatch, heroBanner, giftForYou } from '../assets/index.js';
+import { goldenWatch, gearWatch, heroMillion, empowerWatch, giftForYou } from '../assets/index.js';
 import { mockTestimonials } from '../data/mockTestimonials.js';
 
 export default function Home() {
@@ -155,39 +155,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Banner: El Presidente */}
-      <section className="w-full relative">
-        <img src={heroBanner} alt="El Presidente — The 250th Anniversary" className="w-full h-auto block" />
-        <div className="absolute bottom-[20%] left-1/2 -translate-x-1/2">
-          <motion.div
-            className="relative overflow-hidden cursor-pointer"
-            style={{ background: '#0a0a0a', border: '1px solid #0a0a0a' }}
-            whileHover="hover"
-            whileTap={{ scale: 0.97 }}
-            initial="rest"
-          >
-            <motion.span
-              aria-hidden="true"
-              className="absolute inset-0 pointer-events-none block"
-              style={{ background: '#ffffff', transformOrigin: '0% 50%' }}
-              variants={{ rest: { scaleX: 0 }, hover: { scaleX: 1 } }}
-              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-            />
-            <Link
-              to="/product/241206019"
-              className="relative z-10 inline-flex items-center justify-center font-sans font-semibold uppercase whitespace-nowrap"
-              style={{ fontSize: 'clamp(8px, 1vw, 12px)', letterSpacing: '0.2em', padding: 'clamp(8px, 1vw, 14px) clamp(20px, 3vw, 48px)' }}
-            >
-              <motion.span
-                variants={{ rest: { color: '#FFFFFF' }, hover: { color: '#0a0a0a' } }}
-                transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
-              >
-                Shop Now
-              </motion.span>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
+      {/* RAXER banner */}
+      <RaxerHero />
 
       {/* Men's grid */}
       <section className="py-12 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-[1400px] 2xl:max-w-[1600px] mx-auto w-full">
@@ -410,9 +379,6 @@ export default function Home() {
       </section>
 
 
-
-      {/* RAXER banner — above the "Thanking the Giver in You" block */}
-      <RaxerHero />
 
       {/* Giving back */}
       <section className="py-12 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-[1400px] 2xl:max-w-[1600px] mx-auto w-full">
