@@ -45,7 +45,7 @@ export default function RaxerHero() {
             Swiss made timepieces
           </span>
 
-          <h1
+          <h2
             className="font-display font-bold leading-none uppercase w-full"
             style={{
               fontSize: 'clamp(14px, 3vw, 48px)',
@@ -54,7 +54,7 @@ export default function RaxerHero() {
             }}
           >
             RAXER
-          </h1>
+          </h2>
 
           {/* Wipe-fill: white slides in from left on hover, text inverts to dark */}
           <motion.div
