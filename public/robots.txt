@@ -1,7 +1,75 @@
 User-agent: *
 Allow: /
-Disallow: /admin/
-Disallow: /auth
-Disallow: /cart-bridge
 
+
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+Disallow: /login
+Disallow: /register
+Disallow: /wishlist
+Disallow: /compare
+Disallow: /orders
+Disallow: /order-success
+Disallow: /thank-you
+
+Disallow: /search
+
+Disallow: /api/
+Disallow: /graphql
+
+Disallow: /*?*sort=
+Disallow: /*?*page=
+Disallow: /*?*filter=
+Disallow: /*?*price=
+Disallow: /*?*brand=
+Disallow: /*?*color=
+Disallow: /*?*size=
+Disallow: /*?*availability=
+Disallow: /*?*view=
+Disallow: /*?*utm_
+Disallow: /*?*gclid=
+Disallow: /*?*fbclid=
+
+Allow: /assets/
+Allow: /static/
+Allow: /images/
+
+Host: www.cstimepieces.com
+
+# OpenAI (ChatGPT training bot)
+User-agent: GPTBot
+Allow: /
+
+# ChatGPT live browsing retrieval
+User-agent: ChatGPT-User
+Allow: /
+
+# Google Gemini / AI Overviews training usage
+User-agent: Google-Extended
+Allow: /
+
+# Anthropic Claude
+User-agent: ClaudeBot
+Allow: /
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+
+# Common Crawl dataset crawler
+User-agent: CCBot
+Allow: /
+
+# Meta AI crawler
+User-agent: Meta-ExternalAgent
+Allow: /
+
+# All search engines
+User-agent: *
+
+# Allow crawling of public pages
+Allow: /
+
+# Sitemap
 Sitemap: https://www.cstimepieces.com/sitemap.xml

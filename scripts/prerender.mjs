@@ -118,11 +118,30 @@ async function prerenderRoute(browser, origin, routePath) {
   const page = await browser.newPage();
   try {
     await page.setViewport({ width: 1366, height: 900 });
-    await page.goto(`${origin}${routePath}`, { waitUntil: 'networkidle2', timeout: 30000 });
-    // Wait until the app has actually rendered something into #root.
+
+    // Block images/media/fonts during capture: their tags (with src/alt) are
+    // still serialised into the HTML, but not downloading the bytes keeps the
+    // network quiet so it actually reaches idle. Without this, the autoplaying
+    // hero <video> streams forever and the page never settles (which both timed
+    // pages out and captured them before their data-fetch render flushed). API
+    // calls (fetch/xhr), scripts and CSS are always allowed through.
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      if (['image', 'media', 'font'].includes(req.resourceType())) req.abort();
+      else req.continue();
+    });
+
+    // domcontentloaded (not networkidle) so navigation itself never hangs on the
+    // streaming video; we then wait for the app + its data explicitly.
+    await page.goto(`${origin}${routePath}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page
-      .waitForFunction(() => document.querySelector('#root')?.childElementCount > 0, { timeout: 15000 })
+      .waitForFunction(() => document.querySelector('#root')?.childElementCount > 0, { timeout: 20000 })
       .catch(() => {});
+    // Let the API fetches settle, then give React a beat to flush the render
+    // that those responses trigger (this is what fills the product grids).
+    await page.waitForNetworkIdle({ idleTime: 700, timeout: 20000 }).catch(() => {});
+    await new Promise((r) => setTimeout(r, 600));
+
     const html = await page.content();
     await writeRouteHtml(routePath, html);
     return true;
@@ -161,7 +180,19 @@ async function main() {
   const browser = await puppeteer.launch({
     executablePath,
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      // Prerendering is a trusted build-time step, but the app fetches the live
+      // API from this throwaway localhost origin, which the backend's CORS would
+      // reject — causing the app to fall back to mock/empty data in the snapshot.
+      // Disabling web security in THIS headless browser only (never shipped to
+      // users) lets those cross-origin fetches succeed so real product data is
+      // baked into the prerendered HTML.
+      '--disable-web-security',
+      '--disable-features=IsolateOrigins,site-per-process,BlockInsecurePrivateNetworkRequests',
+    ],
   });
 
   const concurrency = Math.max(1, Number(process.env.PRERENDER_CONCURRENCY) || 4);

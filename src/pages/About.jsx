@@ -1,24 +1,24 @@
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import SectionHeader from '../components/ui/SectionHeader.jsx';
-import { heroBanner } from '../assets/index.js';
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import SectionHeader from "../components/ui/SectionHeader.jsx";
+import { heroBanner } from "../assets/index.js";
 
 const values = [
   {
-    title: 'Curation',
-    body: 'We source only the finest timepieces, vetted through decades of collector relationships and horological expertise.',
+    title: "Curation",
+    body: "We source only the finest timepieces, vetted through decades of collector relationships and horological expertise.",
   },
   {
-    title: 'Authenticity',
-    body: 'Every piece is certified genuine. Certificate of authenticity, numbered seal, and brand passport included as standard.',
+    title: "Authenticity",
+    body: "Every piece is certified genuine. Certificate of authenticity, numbered seal, and brand passport included as standard.",
   },
   {
-    title: 'Service',
+    title: "Service",
     body: "White-glove concierge from discovery to delivery. Our team of watch specialists is available to advise on every purchase.",
   },
   {
-    title: 'Legacy',
-    body: 'We believe great timepieces transcend generations. Our clients become collectors, and collectors become connoisseurs.',
+    title: "Legacy",
+    body: "We believe great timepieces transcend generations. Our clients become collectors, and collectors become connoisseurs.",
   },
 ];
 
@@ -27,7 +27,12 @@ export default function About() {
     <div>
       {/* Hero */}
       <div className="relative h-72 sm:h-96 overflow-hidden">
-        <img src={heroBanner} alt="" aria-hidden="true" className="w-full h-full object-cover object-center" />
+        <img
+          src={heroBanner}
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-cover object-center"
+        />
         <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center gap-4 text-center px-6">
           <motion.span
             className="font-sans text-[10px] tracking-[0.35em] uppercase text-gold"
@@ -65,15 +70,24 @@ export default function About() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <span className="font-sans text-[10px] tracking-[0.3em] uppercase text-gold">Since 2011</span>
+          <span className="font-sans text-[10px] tracking-[0.3em] uppercase text-gold">
+            Since 2011
+          </span>
           <h2 className="font-display text-4xl sm:text-5xl text-ink font-light leading-tight">
             The Standard for Luxury Timepieces
           </h2>
           <p className="font-sans text-sm text-steel leading-loose max-w-2xl">
-            CS Beverly Hills was founded with a singular vision: to bring the world's most extraordinary timepieces to collectors who demand more than a watch. We are curators, historians, and enthusiasts who believe that a truly great timepiece is never merely worn — it is experienced.
+            CS Beverly Hills was founded with a singular vision: to bring the
+            world's most extraordinary timepieces to collectors who demand more
+            than a watch. We are curators, historians, and enthusiasts who
+            believe that a truly great timepiece is never merely worn — it is
+            experienced.
           </p>
           <p className="font-sans text-sm text-steel leading-loose max-w-2xl">
-            Every movement is sourced from Switzerland's finest manufacturers. Every dial tells a story. Every case holds a legacy. Our Beverly Hills showroom and EVOKE Marketplace presence ensure that wherever you are, the world's finest horology is within reach.
+            Every movement is sourced from Switzerland's finest manufacturers.
+            Every dial tells a story. Every case holds a legacy. Our Beverly
+            Hills showroom and EVOKE Marketplace presence ensure that wherever
+            you are, the world's finest horology is within reach.
           </p>
         </motion.div>
       </section>
@@ -93,12 +107,16 @@ export default function About() {
                 className="bg-white border border-cloud p-8 flex flex-col gap-4"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-30px' }}
+                viewport={{ once: true, margin: "-30px" }}
                 transition={{ duration: 0.45, delay: i * 0.08 }}
               >
                 <div className="w-8 h-px bg-gold" />
-                <h3 className="font-display text-2xl text-ink font-light">{v.title}</h3>
-                <p className="font-sans text-sm text-steel leading-relaxed">{v.body}</p>
+                <h3 className="font-display text-2xl text-ink font-light">
+                  {v.title}
+                </h3>
+                <p className="font-sans text-sm text-steel leading-relaxed">
+                  {v.body}
+                </p>
               </motion.div>
             ))}
           </div>
@@ -108,10 +126,17 @@ export default function About() {
       {/* EVOKE partnership */}
       <section className="bg-bone border-t border-cloud py-16 px-6 sm:px-10">
         <div className="max-w-[700px] mx-auto text-center flex flex-col items-center gap-5">
-          <span className="font-sans text-[10px] tracking-[0.3em] uppercase text-gold">Our Platform</span>
-          <h2 className="font-display text-4xl text-ink font-light">Powered by EVOKE Marketplace</h2>
+          <span className="font-sans text-[10px] tracking-[0.3em] uppercase text-gold">
+            Our Platform
+          </span>
+          <h2 className="font-display text-4xl text-ink font-light">
+            Powered by EVOKE Marketplace
+          </h2>
           <p className="font-sans text-sm text-steel leading-relaxed">
-            CS Beverly Hills operates exclusively through EVOKE Marketplace, ensuring every transaction is secure, every product is authenticated, and every purchase creates a positive impact through our integrated give-back program.
+            CS Beverly Hills operates exclusively through EVOKE Marketplace,
+            ensuring every transaction is secure, every product is
+            authenticated, and every purchase creates a positive impact through
+            our integrated give-back program.
           </p>
           <Link
             to="/contact"
