@@ -92,6 +92,18 @@ select:focus-visible {
   border-color: var(--color-ink);
 }
 
+/* Mobile: iOS Safari auto-zooms when a focused form control renders below 16px,
+   which then leaves the page zoomed in — a Google mobile-usability flag. Bump
+   form controls to 16px on phones only so the field stays tap-friendly and the
+   viewport never zooms. Desktop typography is untouched. */
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 /* Touch targets */
 button, a, [role="button"] {
   min-height: 44px;

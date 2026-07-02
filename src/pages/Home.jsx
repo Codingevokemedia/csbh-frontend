@@ -178,7 +178,7 @@ export default function Home() {
 
       {/* Banner: Women's */}
       <section className="w-full relative">
-        <img src={gearWatch} alt="LEGION 333 Swiss Made Diver Watch" className="w-full h-auto block" />
+        <img src={gearWatch} alt="LEGION 333 Swiss Made Diver Watch" loading="lazy" decoding="async" className="w-full h-auto block" />
         <motion.div
           className="absolute bottom-[8%] left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-center"
           initial={{ opacity: 0, y: 14 }}
@@ -247,7 +247,7 @@ export default function Home() {
 
       {/* Banner: Golden Watch */}
       <section className="w-full relative">
-        <img src={goldenWatch} alt="CS Beverly Hills Golden Timepiece" className="w-full h-auto block" />
+        <img src={goldenWatch} alt="CS Beverly Hills Golden Timepiece" loading="lazy" decoding="async" className="w-full h-auto block" />
         <div className="absolute bottom-[12%] left-1/2 -translate-x-1/2">
           <motion.div
             className="relative overflow-hidden cursor-pointer"
@@ -325,6 +325,8 @@ export default function Home() {
               <img
                 src={heroMillion}
                 alt="El Capitan Watch"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover object-center"
               />
             </div>
@@ -334,6 +336,8 @@ export default function Home() {
               <img
                 src={empowerWatch}
                 alt="Empower Watch"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover object-center"
               />
             </div>
@@ -423,6 +427,8 @@ export default function Home() {
             <img
               src={giftForYou}
               alt="Gift for you — with every purchase"
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover object-center"
             />
           </motion.div>
@@ -503,7 +509,7 @@ function CollectionBanner({ image, eyebrow, title, body, cta, align }) {
       {/* ── Mobile: stacked (image → text on solid bg) ── */}
       <div className="sm:hidden flex flex-col">
         <div className="w-full">
-          <img src={image} alt="" aria-hidden="true" className="w-full h-auto block" />
+          <img src={image} alt="" aria-hidden="true" loading="lazy" decoding="async" className="w-full h-auto block" />
         </div>
         <motion.div
           className="bg-cream px-6 py-8 flex flex-col gap-3"
@@ -526,7 +532,7 @@ function CollectionBanner({ image, eyebrow, title, body, cta, align }) {
 
       {/* ── Desktop: image with directional overlay ── */}
       <div className="relative hidden sm:block overflow-hidden min-h-[420px] lg:aspect-[21/9]">
-        <img src={image} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-center" />
+        <img src={image} alt="" aria-hidden="true" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover object-center" />
         <div
           className="absolute inset-0"
           style={{

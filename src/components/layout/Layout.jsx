@@ -2,6 +2,7 @@ import Navbar from './Navbar.jsx';
 import Footer from './Footer.jsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
+import RouteSeo from '../seo/RouteSeo.jsx';
 
 const pageVariants = {
   initial: { opacity: 0, y: 10 },
@@ -13,6 +14,7 @@ export default function Layout({ children }) {
   const location = useLocation();
   return (
     <div className="flex flex-col min-h-[100dvh] bg-cream">
+      <RouteSeo />
       <Navbar />
       <AnimatePresence mode="wait">
         <motion.main
