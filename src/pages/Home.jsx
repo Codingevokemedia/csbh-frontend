@@ -92,6 +92,12 @@ export default function Home() {
 
   return (
     <div className="flex flex-col">
+      {/* Single page-level H1 for SEO / accessibility. Visually hidden because the
+          hero is a full-bleed video with no visible title and the brand shows as a
+          logo image — this gives search engines and screen readers one clear,
+          descriptive document heading without altering the design. */}
+      <h1 className="sr-only">CS Beverly Hills — Luxury Swiss Timepieces &amp; Fine Jewelry</h1>
+
       {/* Hero — video */}
       <section className="relative w-full lg:h-[calc(100svh-72px)] overflow-hidden">
         <video

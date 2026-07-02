@@ -10,6 +10,7 @@ import { AuthProvider } from './contexts/AuthContext.jsx';
 import { CartProvider } from './contexts/CartContext.jsx';
 import { WishlistProvider } from './contexts/WishlistContext.jsx';
 import Layout from './components/layout/Layout.jsx';
+import Canonical from './components/seo/Canonical.jsx';
 
 import Home                   from './pages/Home.jsx';
 import MensAll                from './pages/MensAll.jsx';
@@ -63,6 +64,7 @@ export default function App() {
           <WishlistProvider>
             <Layout>
               <ScrollToTop />
+              <Canonical />
               <Routes>
                 <Route path="/"                          element={<Home />} />
                 <Route path="/mens-all"                  element={<MensAll />} />
