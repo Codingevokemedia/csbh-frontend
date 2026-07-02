@@ -26,3 +26,4 @@ dist-ssr
 .env
 evoke_prod_v7_db.sql
 evoke_prod_v8_db.sql
+.early.coverage
