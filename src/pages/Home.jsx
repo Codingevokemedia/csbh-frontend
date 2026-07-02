@@ -5,7 +5,7 @@ import RaxerHero from '../components/home/RaxerHero.jsx';
 import SectionHeader from '../components/ui/SectionHeader.jsx';
 import ProductGrid from '../components/product/ProductGrid.jsx';
 import { getFeaturedProducts, getProductsByCollection, getStoreProducts, getHomepageSection, isExcludedBestseller } from '../services/products.js';
-import { goldenWatch, gearWatch, heroMillion, empowerWatch, giftForYou } from '../assets/index.js';
+import { goldenWatch, gearWatch, heroMillion, empowerWatch, giftForYou, raxerFirst } from '../assets/index.js';
 import { mockTestimonials } from '../data/mockTestimonials.js';
 
 export default function Home() {
@@ -96,13 +96,15 @@ export default function Home() {
           hero is a full-bleed video with no visible title and the brand shows as a
           logo image — this gives search engines and screen readers one clear,
           descriptive document heading without altering the design. */}
-      <h1 className="sr-only">CS Beverly Hills — Luxury Swiss Timepieces &amp; Fine Jewelry</h1>
+      <h1 className="sr-only">Luxury Timepieces &amp; Fine Jewelry for Every Occasion</h1>
 
       {/* Hero — video */}
       <section className="relative w-full lg:h-[calc(100svh-72px)] overflow-hidden">
         <video
           ref={videoRef}
           src="https://bulkproduct-images.s3.us-east-1.amazonaws.com/2411002/24110002/Raxer+Updated.mp4"
+          poster={raxerFirst}
+          preload="metadata"
           className="w-full h-auto lg:h-full lg:object-cover block"
           autoPlay
           loop
@@ -130,7 +132,7 @@ export default function Home() {
           )}
         </button>
       </section>
-
+ 
       {/* Bestsellers */}
       <section className="py-14 lg:py-24 px-6 sm:px-10 lg:px-16 max-w-[1400px] 2xl:max-w-[1600px] mx-auto w-full">
         <motion.div
@@ -184,7 +186,7 @@ export default function Home() {
 
       {/* Banner: Women's */}
       <section className="w-full relative">
-        <img src={gearWatch} alt="LEGION 333 Swiss Made Diver Watch" loading="lazy" decoding="async" className="w-full h-auto block" />
+        <img src={gearWatch} alt="LEGION 333 Swiss Made Diver Watch" width="4320" height="2013" loading="lazy" decoding="async" className="w-full h-auto block" />
         <motion.div
           className="absolute bottom-[8%] left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-center"
           initial={{ opacity: 0, y: 14 }}
@@ -253,7 +255,7 @@ export default function Home() {
 
       {/* Banner: Golden Watch */}
       <section className="w-full relative">
-        <img src={goldenWatch} alt="CS Beverly Hills Golden Timepiece" loading="lazy" decoding="async" className="w-full h-auto block" />
+        <img src={goldenWatch} alt="CS Beverly Hills Golden Timepiece" width="4320" height="1740" loading="lazy" decoding="async" className="w-full h-auto block" />
         <div className="absolute bottom-[12%] left-1/2 -translate-x-1/2">
           <motion.div
             className="relative overflow-hidden cursor-pointer"

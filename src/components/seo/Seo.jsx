@@ -1,8 +1,8 @@
 import { useLocation } from 'react-router-dom';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_LOGO, absoluteUrl } from './siteConfig.js';
 
-const DEFAULT_TITLE = `${SITE_NAME} | Luxury Timepieces`;
-
+const DEFAULT_TITLE =
+  "Luxury Timepieces & Fine Jewelry | CS Beverly Hills Timepieces";
 /**
  * Per-page SEO tags. React 19 hoists <title>/<meta>/<link> rendered anywhere in
  * the component tree into <head>, so this works without any helmet dependency —

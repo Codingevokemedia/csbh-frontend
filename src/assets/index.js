@@ -1,6 +1,7 @@
 // Central asset registry — swap paths here when final assets arrive
 
 import heroRaxer    from '../../ref_images/raxer_hero_banner_2x1.webp';
+import raxerFirst   from '../../ref_images/raxer_first_web.webp';
 import empowerWatch from '../../ref_images/empower_watch.png';
 import womensImg3   from '../../ref_images/Image (3).png';
 import womensImg4   from '../../ref_images/Image (4).png';
@@ -12,8 +13,6 @@ import goldenWatch from '../../ref_images/golden_watch_web.webp';
 import lumiereRing from '../../ref_images/Lumiere20ring.webp';
 import cufflinksBanner from '../../ref_images/cufflinks_banner_coffee.png';
 import gearWatch from '../../ref_images/gear_watch_web.webp';
-import carVideo from '../../ref_images/car_video.svg';
-import evokeCarVideo from '../../ref_images/evoke_car_video.mp4';
 import logo from '../../ref_images/cs_bh_logo.png';
 import flagUSA from '../../ref_images/usa.png';
 import goldenMoon from '../../ref_images/goldenmoon_watch.png';
@@ -28,6 +27,7 @@ import sportFusion from '../../ref_images/sport_fusion.png';
 
 export {
   heroRaxer,
+  raxerFirst,
   lunaBowl,
   giftForYou,
   legionMain,
@@ -44,8 +44,6 @@ export {
   lumiereRing,
   cufflinksBanner,
   gearWatch,
-  carVideo,
-  evokeCarVideo,
   logo,
   flagUSA,
   goldenMoon,

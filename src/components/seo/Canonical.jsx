@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 // Absolute origin used for every canonical URL. Canonicals must be absolute
 // (Google ignores relative/inconsistent-host canonicals), so this is the single
 // source of truth for the production host.
-export const SITE_ORIGIN = 'https://cstimepieces.com';
+export const SITE_ORIGIN = 'https://www.cstimepieces.com';
 
 // Build the canonical URL for a given route path:
 //  • Uses the pathname only — query strings (?sort=, ?q=, ?page=) and hashes are
