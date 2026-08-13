@@ -2,11 +2,20 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { heroRaxer } from '../../assets/index.js';
 
-export default function RaxerHero() {
+export default function RaxerHero({
+  image = heroRaxer,
+  eyebrow = 'Swiss made timepieces',
+  caption = 'RAXER',
+  ctaLabel = 'SHOP NOW',
+  ctaTo = '/product/251010004',
+  showCta = true,
+}) {
+  // The saved link may be an absolute URL or an in-app path.
+  const isExternal = /^https?:\/\//i.test(ctaTo);
   return (
     <section className="relative w-full">
       <img
-        src={heroRaxer}
+        src={image}
         alt="RAXER Swiss Made Timepiece"
         className="w-full h-auto block"
         loading="eager"
@@ -42,10 +51,10 @@ export default function RaxerHero() {
               letterSpacing: '0.04em',
             }}
           >
-            Swiss made timepieces
+            {eyebrow}
           </span>
 
-          <h1
+          <h2
             className="font-display font-bold leading-none uppercase w-full"
             style={{
               fontSize: 'clamp(14px, 3vw, 48px)',
@@ -53,10 +62,11 @@ export default function RaxerHero() {
               color: '#FFFFFF',
             }}
           >
-            RAXER
-          </h1>
+            {caption}
+          </h2>
 
           {/* Wipe-fill: white slides in from left on hover, text inverts to dark */}
+          {showCta && (
           <motion.div
             className="w-full relative overflow-hidden cursor-pointer"
             style={{ background: '#0a0a0a', border: '1px solid #0a0a0a' }}
@@ -74,27 +84,31 @@ export default function RaxerHero() {
               }}
               transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
             />
-            <Link
-              to="/product/251010004"
-              className="relative z-10 w-full inline-flex items-center justify-center font-sans font-semibold uppercase"
-              style={{
+            {(() => {
+              const cls =
+                'relative z-10 w-full inline-flex items-center justify-center font-sans font-semibold uppercase';
+              const sty = {
                 fontSize: 'clamp(7px, 0.85vw, 11px)',
                 letterSpacing: '0.18em',
                 padding: 'clamp(7px, 0.9vw, 13px) 0',
                 minHeight: '0',
-              }}
-            >
-              <motion.span
-                variants={{
-                  rest: { color: '#FFFFFF' },
-                  hover: { color: '#0a0a0a' },
-                }}
-                transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
-              >
-                SHOP NOW
-              </motion.span>
-            </Link>
+              };
+              const label = (
+                <motion.span
+                  variants={{ rest: { color: '#FFFFFF' }, hover: { color: '#0a0a0a' } }}
+                  transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                >
+                  {ctaLabel}
+                </motion.span>
+              );
+              return isExternal ? (
+                <a href={ctaTo} className={cls} style={sty}>{label}</a>
+              ) : (
+                <Link to={ctaTo} className={cls} style={sty}>{label}</Link>
+              );
+            })()}
           </motion.div>
+          )}
         </div>
       </motion.div>
     </section>

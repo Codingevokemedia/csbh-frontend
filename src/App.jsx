@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -10,37 +10,49 @@ import { AuthProvider } from './contexts/AuthContext.jsx';
 import { CartProvider } from './contexts/CartContext.jsx';
 import { WishlistProvider } from './contexts/WishlistContext.jsx';
 import Layout from './components/layout/Layout.jsx';
+import Canonical from './components/seo/Canonical.jsx';
+import RequireAdmin from './components/admin/RequireAdmin.jsx';
 
+// Home is the landing route: keep it eager so the first paint needs no extra
+// chunk round-trip. Every other route is lazy-loaded, so it no longer ships in
+// the initial JS bundle and is only fetched when the user navigates there.
 import Home                   from './pages/Home.jsx';
-import MensAll                from './pages/MensAll.jsx';
-import MensWatches            from './pages/MensWatches.jsx';
-import MensCufflinks          from './pages/MensCufflinks.jsx';
-import WomensWatches          from './pages/WomensWatches.jsx';
-import WomensWatchesOnly      from './pages/WomensWatchesOnly.jsx';
-import WomensJewelry          from './pages/WomensJewelry.jsx';
-import NewArrivals            from './pages/NewArrivals.jsx';
-import Bestsellers            from './pages/Bestsellers.jsx';
-import LimitedEditions        from './pages/LimitedEditions.jsx';
-import ProductDetail          from './pages/ProductDetail.jsx';
-import AllProducts            from './pages/AllProducts.jsx';
-import CollectionPage         from './pages/CollectionPage.jsx';
-import About                  from './pages/About.jsx';
-import Contact                from './pages/Contact.jsx';
-import Testimonials           from './pages/Testimonials.jsx';
-import PrivacyPolicy          from './pages/PrivacyPolicy.jsx';
-import Terms                  from './pages/Terms.jsx';
-import ProductRegistration    from './pages/ProductRegistration.jsx';
-import AmbassadorProgram      from './pages/AmbassadorProgram.jsx';
-import CorporatePartnerProgram from './pages/CorporatePartnerProgram.jsx';
-import News                   from './pages/News.jsx';
-import PressRelease           from './pages/PressRelease.jsx';
-import PeaceOfMind            from './pages/PeaceOfMind.jsx';
-import CartBridge             from './pages/CartBridge.jsx';
-import AIContentDisclosure    from './pages/AIContentDisclosure.jsx';
-import Auth                   from './pages/Auth.jsx';
-import AdminLogin             from './pages/admin/AdminLogin.jsx';
-import HomepageProductsAdmin  from './pages/admin/HomepageProductsAdmin.jsx';
-import RequireAdmin           from './components/admin/RequireAdmin.jsx';
+
+const MensAll                = lazy(() => import('./pages/MensAll.jsx'));
+const MensWatches            = lazy(() => import('./pages/MensWatches.jsx'));
+const MensCufflinks          = lazy(() => import('./pages/MensCufflinks.jsx'));
+const WomensWatches          = lazy(() => import('./pages/WomensWatches.jsx'));
+const WomensWatchesOnly      = lazy(() => import('./pages/WomensWatchesOnly.jsx'));
+const WomensJewelry          = lazy(() => import('./pages/WomensJewelry.jsx'));
+const NewArrivals            = lazy(() => import('./pages/NewArrivals.jsx'));
+const Bestsellers            = lazy(() => import('./pages/Bestsellers.jsx'));
+const LimitedEditions        = lazy(() => import('./pages/LimitedEditions.jsx'));
+const ProductDetail          = lazy(() => import('./pages/ProductDetail.jsx'));
+const AllProducts            = lazy(() => import('./pages/AllProducts.jsx'));
+const CollectionPage         = lazy(() => import('./pages/CollectionPage.jsx'));
+const About                  = lazy(() => import('./pages/About.jsx'));
+const Contact                = lazy(() => import('./pages/Contact.jsx'));
+const Testimonials           = lazy(() => import('./pages/Testimonials.jsx'));
+const PrivacyPolicy          = lazy(() => import('./pages/PrivacyPolicy.jsx'));
+const Terms                  = lazy(() => import('./pages/Terms.jsx'));
+const ProductRegistration    = lazy(() => import('./pages/ProductRegistration.jsx'));
+const AmbassadorProgram      = lazy(() => import('./pages/AmbassadorProgram.jsx'));
+const CorporatePartnerProgram = lazy(() => import('./pages/CorporatePartnerProgram.jsx'));
+const News                   = lazy(() => import('./pages/News.jsx'));
+const PressRelease           = lazy(() => import('./pages/PressRelease.jsx'));
+const PeaceOfMind            = lazy(() => import('./pages/PeaceOfMind.jsx'));
+const CartBridge             = lazy(() => import('./pages/CartBridge.jsx'));
+const AIContentDisclosure    = lazy(() => import('./pages/AIContentDisclosure.jsx'));
+const Auth                   = lazy(() => import('./pages/Auth.jsx'));
+const AdminLogin             = lazy(() => import('./pages/admin/AdminLogin.jsx'));
+const HomepageProductsAdmin  = lazy(() => import('./pages/admin/HomepageProductsAdmin.jsx'));
+
+// Invisible fallback that only reserves vertical space while a route chunk loads.
+// Navbar + Footer stay mounted (they live in Layout, outside <Routes>), so this
+// never flashes a spinner or shifts the chrome.
+function RouteFallback() {
+  return <div className="min-h-[70svh]" aria-hidden="true" />;
+}
 
 function NotFound() {
   return (
@@ -63,6 +75,8 @@ export default function App() {
           <WishlistProvider>
             <Layout>
               <ScrollToTop />
+              <Canonical />
+              <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route path="/"                          element={<Home />} />
                 <Route path="/mens-all"                  element={<MensAll />} />
@@ -75,6 +89,7 @@ export default function App() {
                 <Route path="/bestsellers"               element={<Bestsellers />} />
                 <Route path="/limited-editions"          element={<LimitedEditions />} />
                 <Route path="/all-products"              element={<AllProducts />} />
+                <Route path="/product/:id/:slug"         element={<ProductDetail />} />
                 <Route path="/product/:slug"             element={<ProductDetail />} />
                 <Route path="/collection/:slug"          element={<CollectionPage />} />
                 <Route path="/collections/:collectionSlug" element={<CollectionPage />} />
@@ -97,6 +112,7 @@ export default function App() {
                 <Route path="/admin/homepage-products"   element={<RequireAdmin><HomepageProductsAdmin /></RequireAdmin>} />
                 <Route path="*"                          element={<NotFound />} />
               </Routes>
+              </Suspense>
             </Layout>
           </WishlistProvider>
         </CartProvider>

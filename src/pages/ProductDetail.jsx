@@ -10,6 +10,8 @@ import LoadingState from '../components/ui/LoadingState.jsx';
 import ErrorState from '../components/ui/ErrorState.jsx';
 import Button from '../components/ui/Button.jsx';
 import SectionHeader from '../components/ui/SectionHeader.jsx';
+import Seo from '../components/seo/Seo.jsx';
+import { buildProduct, buildBreadcrumb } from '../components/seo/schema.js';
 
 // A gallery entry is a video when its URL points at a video file. The backend's
 // photos-and-videos collection mixes both, so we branch on the extension.
@@ -28,7 +30,10 @@ function buildAttributeGroups(attributes) {
 }
 
 export default function ProductDetail() {
-  const { slug }                        = useParams();
+  // The URL is /product/:id/:slug (id-first) — older /product/:slug links still
+  // work via the slug fallback below.
+  const { id, slug }                    = useParams();
+  const productKey                      = id || slug;
   const [product, setProduct]           = useState(null);
   const [related, setRelated]           = useState([]);
   const [loading, setLoading]           = useState(true);
@@ -81,7 +86,7 @@ export default function ProductDetail() {
     setImgLoading(true);
     setVariants([]);
     let currentId = null;
-    getProductBySlug(slug)
+    getProductBySlug(productKey)
       .then(p => {
         if (!p) throw new Error('Product not found.');
         currentId = String(p.id);
@@ -101,7 +106,7 @@ export default function ProductDetail() {
       .then(all => setRelated(all.filter(p2 => String(p2.id) !== currentId).slice(0, 4)))
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [productKey]);
 
   // Register the <csbh-3d-viewer> web component (it lazy-loads model-viewer
   // from a CDN on first use).
@@ -207,6 +212,24 @@ const stockLabel = selectedVariant
   const lifestyleImages = product.lifestyleImages || [];
   const EVOKE_SITE = import.meta.env.VITE_EVOKE_SITE_URL || 'https://www.evokemarketplace.com';
 
+  // ── SEO ───────────────────────────────────────────────────────────────────
+  // Meta description from the product copy (trimmed to a search-friendly length),
+  // with Product + BreadcrumbList structured data. Canonical is the id-first URL
+  // (/product/:id/:slug) that the product cards link to.
+  const canonicalPath = `/product/${product.id}/${product.slug}`;
+  const metaDescription = (product.description || `${product.title} — luxury timepiece from CS Beverly Hills.`)
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 155);
+  const productJsonLd = [
+    buildProduct(product, { path: canonicalPath }),
+    buildBreadcrumb([
+      { name: 'Home', path: '/' },
+      { name: product.collection, path: `/${product.collection}` },
+      { name: product.title, path: canonicalPath },
+    ]),
+  ];
+
   // Gallery swaps to the selected variant's own images when it has them.
   const gallery = (selectedVariant?.images?.length ? selectedVariant.images : product.gallery) || [];
   // Currently-selected gallery media (photo or video).
@@ -215,6 +238,15 @@ const stockLabel = selectedVariant
 
   return (
     <div className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16 pt-10 lg:pt-16 pb-16">
+      <Seo
+        title={product.title}
+        description={metaDescription}
+        image={product.image}
+        type="product"
+        canonicalPath={canonicalPath}
+        jsonLd={productJsonLd}
+      />
+
       {/* Breadcrumb */}
       <nav className="flex items-baseline gap-2 mb-8 font-sans text-[14px] leading-none" aria-label="Breadcrumb">
         <Link to="/" className="text-mist hover:text-ink transition-colors">Home</Link>
@@ -262,7 +294,7 @@ const stockLabel = selectedVariant
                           </span>
                         </>
                       ) : (
-                        <img src={media} alt="" className="w-full h-full object-cover" aria-hidden="true" />
+                        <img src={media} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" aria-hidden="true" />
                       )}
                     </button>
                   );
@@ -390,14 +422,11 @@ const stockLabel = selectedVariant
               <span className={`w-1.5 h-1.5 rounded-full ${product.inStock ? 'bg-[#34a853]' : 'bg-mist'}`} />
               <span className={product.inStock ? 'text-[#2f7d3f]' : 'text-mist'}>{stockLabel}</span>
             </span>
-            {(selectedVariant?.sku) ? selectedVariant?.sku && (
-              <span className="font-sans text-[12px] text-mist">SKU: <span className="text-steel">{product?.sku}</span></span>
-            ) : (
-              <span className="font-sans text-[12px] text-mist">SKU: <span className="text-steel">{selectedVariant?.sku}</span></span>
+            {/* Prefer the selected variant's SKU; fall back to the product SKU.
+                Render nothing when neither exists (avoids a blank "SKU:"). */}
+            {(selectedVariant?.sku || product?.sku) && (
+              <span className="font-sans text-[12px] text-mist">SKU: <span className="text-steel">{selectedVariant?.sku || product?.sku}</span></span>
             )}
-            {/* {selectedVariant.sku && (
-              <span className="font-sans text-[12px] text-mist">SKU: <span className="text-steel">{selectedVariant.sku}</span></span>
-            )} */}
             {(product.categoryName || product.category) && (
               <span className="font-sans text-[12px] text-mist capitalize">{product.categoryName || product.category}</span>
             )}

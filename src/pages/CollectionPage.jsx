@@ -8,6 +8,8 @@ import Pagination from '../components/ui/Pagination.jsx';
 import { applyProductFilters } from '../utils/filterProducts.js';
 import { getCollectionBySlug } from '../data/collections.js';
 import { getProductsByCollection, searchProducts } from '../services/products.js';
+import Seo from '../components/seo/Seo.jsx';
+import { SITE_DESCRIPTION } from '../components/seo/siteConfig.js';
 
 const SORT_OPTIONS = [
   { value: 'newest',     label: 'Newest First' },
@@ -239,6 +241,19 @@ export default function CollectionPage({ collection, title, subtitle, banner, it
 
   return (
     <div>
+      {/* Route-driven collection pages (/collection/:slug) own their SEO tags;
+          the prop-driven category pages (/mens, /womens-watches, …) are covered
+          by the static RouteSeo table instead, so we only emit here when the
+          page was reached via a slug. Both /collection/:slug and
+          /collections/:slug canonicalise to the /collection/:slug form. */}
+      {collectionSlug && (
+        <Seo
+          title={effectiveTitle || 'Collection'}
+          description={effectiveDescription || SITE_DESCRIPTION}
+          canonicalPath={`/collection/${collectionSlug}`}
+        />
+      )}
+
       {/* ── Banner (photo pages: MensWatches, WomensWatches, etc.) ── */}
       {hasBanner ? (
         <div className="relative h-60 sm:h-72 overflow-hidden">
