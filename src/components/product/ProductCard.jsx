@@ -49,7 +49,7 @@ export default function ProductCard({ product, onQuickView }) {
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.45, ease: 'easeOut' }}
     >
-      <Link to={`/product/${product.slug}`} className="block" aria-label={product.title}>
+      <Link to={`/product/${product.id}/${product.slug}`} className="block" aria-label={product.title}>
         {/* Image */}
         <div className="relative aspect-square bg-bone overflow-hidden">
           {!imgLoaded && <div className="skeleton absolute inset-0" />}

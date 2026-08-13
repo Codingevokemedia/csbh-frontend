@@ -89,6 +89,7 @@ export default function App() {
                 <Route path="/bestsellers"               element={<Bestsellers />} />
                 <Route path="/limited-editions"          element={<LimitedEditions />} />
                 <Route path="/all-products"              element={<AllProducts />} />
+                <Route path="/product/:id/:slug"         element={<ProductDetail />} />
                 <Route path="/product/:slug"             element={<ProductDetail />} />
                 <Route path="/collection/:slug"          element={<CollectionPage />} />
                 <Route path="/collections/:collectionSlug" element={<CollectionPage />} />

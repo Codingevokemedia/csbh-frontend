@@ -30,7 +30,10 @@ function buildAttributeGroups(attributes) {
 }
 
 export default function ProductDetail() {
-  const { slug }                        = useParams();
+  // The URL is /product/:id/:slug (id-first) — older /product/:slug links still
+  // work via the slug fallback below.
+  const { id, slug }                    = useParams();
+  const productKey                      = id || slug;
   const [product, setProduct]           = useState(null);
   const [related, setRelated]           = useState([]);
   const [loading, setLoading]           = useState(true);
@@ -83,7 +86,7 @@ export default function ProductDetail() {
     setImgLoading(true);
     setVariants([]);
     let currentId = null;
-    getProductBySlug(slug)
+    getProductBySlug(productKey)
       .then(p => {
         if (!p) throw new Error('Product not found.');
         currentId = String(p.id);
@@ -103,7 +106,7 @@ export default function ProductDetail() {
       .then(all => setRelated(all.filter(p2 => String(p2.id) !== currentId).slice(0, 4)))
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [productKey]);
 
   // Register the <csbh-3d-viewer> web component (it lazy-loads model-viewer
   // from a CDN on first use).
@@ -211,9 +214,9 @@ const stockLabel = selectedVariant
 
   // ── SEO ───────────────────────────────────────────────────────────────────
   // Meta description from the product copy (trimmed to a search-friendly length),
-  // with Product + BreadcrumbList structured data. Canonical is the clean slug
-  // URL so numeric-id links (/product/241206026) fold onto the name-based one.
-  const canonicalPath = `/product/${product.slug}`;
+  // with Product + BreadcrumbList structured data. Canonical is the id-first URL
+  // (/product/:id/:slug) that the product cards link to.
+  const canonicalPath = `/product/${product.id}/${product.slug}`;
   const metaDescription = (product.description || `${product.title} — luxury timepiece from CS Beverly Hills.`)
     .replace(/\s+/g, ' ')
     .trim()
@@ -419,14 +422,11 @@ const stockLabel = selectedVariant
               <span className={`w-1.5 h-1.5 rounded-full ${product.inStock ? 'bg-[#34a853]' : 'bg-mist'}`} />
               <span className={product.inStock ? 'text-[#2f7d3f]' : 'text-mist'}>{stockLabel}</span>
             </span>
-            {(selectedVariant?.sku) ? selectedVariant?.sku && (
-              <span className="font-sans text-[12px] text-mist">SKU: <span className="text-steel">{product?.sku}</span></span>
-            ) : (
-              <span className="font-sans text-[12px] text-mist">SKU: <span className="text-steel">{selectedVariant?.sku}</span></span>
+            {/* Prefer the selected variant's SKU; fall back to the product SKU.
+                Render nothing when neither exists (avoids a blank "SKU:"). */}
+            {(selectedVariant?.sku || product?.sku) && (
+              <span className="font-sans text-[12px] text-mist">SKU: <span className="text-steel">{selectedVariant?.sku || product?.sku}</span></span>
             )}
-            {/* {selectedVariant.sku && (
-              <span className="font-sans text-[12px] text-mist">SKU: <span className="text-steel">{selectedVariant.sku}</span></span>
-            )} */}
             {(product.categoryName || product.category) && (
               <span className="font-sans text-[12px] text-mist capitalize">{product.categoryName || product.category}</span>
             )}

@@ -60,7 +60,7 @@ function slugify(str) {
     .replace(/^-+|-+$/g, '');
 }
 
-async function fetchProductSlugs() {
+async function fetchProducts() {
   if (!API_BASE) {
     console.warn('[sitemap] VITE_EVOKE_API_BASE not set — skipping product URLs.');
     return [];
@@ -73,14 +73,16 @@ async function fetchProductSlugs() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     const rows = json?.data?.result ?? json?.result ?? [];
-    const slugs = new Set();
+    const byId = new Map();
     for (const r of rows) {
-      const name = r?.ProductName ?? r?.title ?? r?.name;
       const id = r?.ProductID ?? r?.id;
-      const slug = slugify(name) || (id != null ? String(id) : '');
-      if (slug) slugs.add(slug);
+      if (id == null) continue;
+      const name = r?.ProductName ?? r?.title ?? r?.name;
+      const slug = slugify(name) || String(id);
+      // Keyed by id so each product appears once.
+      byId.set(String(id), { id: String(id), slug });
     }
-    return [...slugs];
+    return [...byId.values()];
   } catch (err) {
     console.warn(`[sitemap] Product fetch failed (${err.message}) — writing static routes only.`);
     return [];
@@ -118,10 +120,11 @@ async function main() {
     entries.push(urlEntry({ path: `/collection/${c.slug}`, priority: 0.8 }));
   }
 
-  // Product detail pages (fetched live).
-  const productSlugs = await fetchProductSlugs();
-  for (const slug of productSlugs) {
-    entries.push(urlEntry({ path: `/product/${slug}`, priority: 0.8 }));
+  // Product detail pages (fetched live). URL is id-first (/product/:id/:slug),
+  // matching the links the app renders and the page's canonical.
+  const products = await fetchProducts();
+  for (const p of products) {
+    entries.push(urlEntry({ path: `/product/${p.id}/${p.slug}`, priority: 0.8 }));
   }
 
   const sitemap =
@@ -145,7 +148,7 @@ async function main() {
 
   console.log(
     `[sitemap] Wrote ${entries.length} URLs ` +
-    `(${STATIC_ROUTES.length} static, ${COLLECTIONS.length} collections, ${productSlugs.length} products) ` +
+    `(${STATIC_ROUTES.length} static, ${COLLECTIONS.length} collections, ${products.length} products) ` +
     `→ public/sitemap.xml and public/robots.txt`,
   );
 }
