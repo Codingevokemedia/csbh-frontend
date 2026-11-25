@@ -1,7 +1,37 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { getProductBySlug, getProductsByCollection, getProductVariants } from '../services/products.js';
+import { getProductBySlug, getProductsByCollection, getProductVariants, getProductOffers, notifyBackInStock, isStoreProduct } from '../services/products.js';
+import { addRecentlyViewed } from '../lib/recentlyViewed.js';
+import ProductOffers from '../components/product/extras/ProductOffers.jsx';
+import NotifyMe from '../components/product/extras/NotifyMe.jsx';
+import ShareButton from '../components/product/extras/ShareButton.jsx';
+import VariantCards from '../components/product/extras/VariantCards.jsx';
+import useProductImageZoom from '../components/product/zoom/useProductImageZoom.jsx';
+import extrasStyles from '../components/product/extras/ProductExtras.module.css';
+
+const EXTRAS_THEME = {
+  '--px-ink': '#2C2B35',
+  '--px-muted': '#595667',
+  '--px-border': '#E0DFDB',
+  '--px-accent': '#2C2B35',
+};
+// Offers button + panel in the CS Beverly Hills look: cream, Montserrat /
+// Cormorant, gold accent, wide uppercase tracking.
+const OFFERS_THEME = {
+  '--of-ink': '#2C2B35',
+  '--of-muted': '#595667',
+  '--of-border': '#E0DFDB',
+  '--of-panel': '#FAFAF7',
+  '--of-surface': '#FFFFFF',
+  '--of-accent': '#CA8A04',
+  '--of-accent-text': '#FFFFFF',
+  '--of-success': '#4D7C0F',
+  '--of-radius': '0px',
+  '--of-font': 'var(--font-sans)',
+  '--of-display': 'var(--font-display)',
+  '--of-tracking': '0.16em',
+};
 import { useCart } from '../contexts/CartContext.jsx';
 import { useWishlist } from '../contexts/WishlistContext.jsx';
 import ProductGrid from '../components/product/ProductGrid.jsx';
@@ -29,6 +59,18 @@ function buildAttributeGroups(attributes) {
     .filter((g) => g.name && g.options.length);
 }
 
+// Variant cards in the CSBH look: rounded, gold accent.
+const VARIANT_THEME = {
+  '--vc-ink': 'var(--color-ink)',
+  '--vc-muted': 'var(--color-steel)',
+  '--vc-border': 'var(--color-cloud)',
+  '--vc-accent': 'var(--color-gold)',
+  '--vc-active-bg': 'rgba(202,138,4,0.08)',
+  '--vc-surface': '#ffffff',
+  '--vc-radius': '8px',
+  '--vc-font': 'var(--font-sans)',
+};
+
 export default function ProductDetail() {
   // The URL is /product/:id/:slug (id-first) — older /product/:slug links still
   // work via the slug fallback below.
@@ -36,8 +78,10 @@ export default function ProductDetail() {
   const productKey                      = id || slug;
   const [product, setProduct]           = useState(null);
   const [related, setRelated]           = useState([]);
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
+  const [couponCode, setCouponCode]     = useState(null);
   const [activeImg, setActiveImg]       = useState(0);
   const [imgLoading, setImgLoading]     = useState(true);
   const [quantity, setQuantity]         = useState(1);
@@ -56,7 +100,7 @@ export default function ProductDetail() {
     return 'Other';
   });
 
-  const sharedZoomRef = useRef(null);
+  const [lifestyleZoomIdx, setLifestyleZoomIdx] = useState(0);
   const tabsRef = useRef(null);
   const thumbRailRef = useRef(null);
   const lifestyleRef = useRef(null);
@@ -85,6 +129,7 @@ export default function ProductDetail() {
     setActiveImg(0);
     setImgLoading(true);
     setVariants([]);
+    setRelated([]);
     let currentId = null;
     getProductBySlug(productKey)
       .then(p => {
@@ -101,11 +146,25 @@ export default function ProductDetail() {
         getProductVariants(p.id).then((vs) => {
           setVariants(vs);
         });
-        return getProductsByCollection(p.collection);
+        // Record this CSBH product as recently viewed; show the shopper's others.
+        if (isStoreProduct(p)) {
+          const list = addRecentlyViewed({
+            id: p.id, slug: p.slug, title: p.title, image: p.image,
+            price: p.price, compareAtPrice: p.compareAtPrice,
+            inStock: p.inStock, stockQuantity: p.stockQuantity,
+          });
+          setRecentlyViewed(list.filter(p2 => String(p2.id) !== String(p.id)).slice(0, 4));
+        }
+        // Show the product now; the related row fills in when it arrives.
+        setLoading(false);
+        getProductsByCollection(p.collection)
+          .then(all => setRelated(all.filter(p2 => String(p2.id) !== currentId).slice(0, 4)))
+          .catch(() => {});
       })
-      .then(all => setRelated(all.filter(p2 => String(p2.id) !== currentId).slice(0, 4)))
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
+      .catch(e => {
+        setError(e.message);
+        setLoading(false);
+      });
   }, [productKey]);
 
   // Register the <csbh-3d-viewer> web component (it lazy-loads model-viewer
@@ -118,6 +177,32 @@ export default function ProductDetail() {
     if (i === activeImg) return;
     setImgLoading(true);
     setActiveImg(i);
+  };
+
+  // Fullscreen zoom viewer (same as the Evoke marketplace product page):
+  // click the main image on desktop, or the expand button on any device.
+  // Called before the early returns below, so it works from the same gallery
+  // the page renders (the selected variant's images when it has them).
+  const zoomVariant = variants.find((v) => v.label === selectedAttrs['Options']);
+  const zoomGallery = product ? (zoomVariant?.images?.length ? zoomVariant.images : product.gallery) || [] : [];
+  const zoomMedia = zoomGallery.length ? zoomGallery : product?.image ? [product.image] : [];
+  const { onMainImageClick, FullscreenTrigger, FullscreenViewer } = useProductImageZoom({
+    images: zoomMedia,
+    selectedIndex: Math.min(activeImg, Math.max(0, zoomMedia.length - 1)),
+    onSelectIndex: handleActiveImgChange,
+    getImageAlt: () => product?.title || '',
+  });
+
+  // Same click-to-open viewer for the lifestyle images.
+  const lifestyleZoom = useProductImageZoom({
+    images: product?.lifestyleImages || [],
+    selectedIndex: lifestyleZoomIdx,
+    onSelectIndex: setLifestyleZoomIdx,
+    getImageAlt: () => `${product?.title || ''} lifestyle`,
+  });
+  const openLifestyleZoom = (i) => {
+    setLifestyleZoomIdx(i);
+    lifestyleZoom.openFullscreen();
   };
 
   if (loading) return <LoadingState fullPage message="Loading timepiece…" />;
@@ -146,46 +231,10 @@ export default function ProductDetail() {
       quantity,
       productTitle: product.title,
       attributes,
+      coupon: couponCode,
     });
     setIsAdding(false);
   }
-
-  const handleZoomMove = (e, imageUrl) => {
-    const zoomEl = sharedZoomRef.current;
-    if (!zoomEl || !imageUrl) return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const zoomLevel = 2.5;
-    const xPos = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    const yPos = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
-
-    // Match the thumbnail's object-cover rendering so the zoom never stretches:
-    // scale the image to COVER the box (preserving aspect), then magnify.
-    const img = e.currentTarget.querySelector('img');
-    const natW = img?.naturalWidth || rect.width;
-    const natH = img?.naturalHeight || rect.height;
-    const coverScale = Math.max(rect.width / natW, rect.height / natH);
-    const coverW = natW * coverScale; // object-cover rendered size (≥ box)
-    const coverH = natH * coverScale;
-    const offsetX = (coverW - rect.width) / 2;  // amount cropped each side
-    const offsetY = (coverH - rect.height) / 2;
-
-    zoomEl.style.display = "block";
-    zoomEl.style.backgroundImage = `url("${imageUrl}")`;
-    zoomEl.style.backgroundSize = `${coverW * zoomLevel}px ${coverH * zoomLevel}px`;
-    zoomEl.style.backgroundPosition =
-      `-${(xPos + offsetX) * zoomLevel - zoomEl.offsetWidth / 2}px ` +
-      `-${(yPos + offsetY) * zoomLevel - zoomEl.offsetHeight / 2}px`;
-    document.body.style.cursor = "zoom-in";
-  };
-
-  const handleZoomLeave = () => {
-    const zoomEl = sharedZoomRef.current;
-    if (zoomEl) {
-      zoomEl.style.display = "none";
-    }
-    document.body.style.cursor = "default";
-  };
 
   const shippingContent = <p className="font-sans text-sm text-steel leading-relaxed">Complimentary shipping on all orders. Dispatched within 1–2 business days. Signed delivery required for all luxury timepieces.</p>;
   const returnsContent = <p className="font-sans text-sm text-steel leading-relaxed">{product.warranty ? `All CS Beverly Hills timepieces carry a ${product.warranty} manufacturer warranty. ` : ''}30-day return window on unworn pieces in original packaging.</p>;
@@ -344,14 +393,14 @@ const stockLabel = selectedVariant
                   playsInline
                   className="w-full h-full object-cover"
                 />
+                {FullscreenTrigger}
               </motion.div>
             ) : (
               <motion.div
                 className="aspect-square bg-bone overflow-hidden border border-cloud cursor-zoom-in relative"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                onMouseMove={(e) => handleZoomMove(e, activeMedia)}
-                onMouseLeave={handleZoomLeave}
+                onClick={onMainImageClick}
               >
                 {imgLoading && <div className="absolute inset-0 skeleton z-10" />}
                 <img
@@ -360,8 +409,10 @@ const stockLabel = selectedVariant
                   className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoading ? 'opacity-0' : 'opacity-100'}`}
                   onLoad={() => setImgLoading(false)}
                 />
+                {FullscreenTrigger}
               </motion.div>
             )}
+            {FullscreenViewer}
 
             {/* 3D / AR viewer popup. <csbh-3d-viewer> lazy-loads model-viewer and
                 renders an interactive, rotatable model with an Enter-AR button on
@@ -416,6 +467,16 @@ const stockLabel = selectedVariant
             )}
           </div>
 
+          <ProductOffers
+            productId={product.id}
+            loadOffers={getProductOffers}
+            price={selectedVariant?.price ?? product.price}
+            appliedCode={couponCode}
+            onChange={setCouponCode}
+            theme={OFFERS_THEME}
+            style={{ marginTop: 0 }}
+          />
+
           {/* Availability + SKU + product type — dynamic from backend */}
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 -mt-2">
             <span className="inline-flex items-center gap-2 font-sans text-[12px]">
@@ -461,37 +522,28 @@ const stockLabel = selectedVariant
                 {variants.length > 0 && (
                   <div className="flex flex-col gap-3 py-4">
                     <span className="font-sans text-[11px] tracking-widest uppercase text-steel">Available Variants</span>
-                    <div className="variant-scroll flex flex-wrap gap-3 max-h-[240px] overflow-y-auto pr-2">
-                      {variants.map((v) => {
-                        const active = selectedVariant?.id === v.id;
-                        return (
-                          <button
-                            key={v.id}
-                            type="button"
-                            onClick={() => {
-                              // Clicking the already-selected variant deselects it.
-                              const nextGallery = (!active && v.images?.length ? v.images : product.gallery) || [];
-                              const nextMedia = nextGallery[0] || product.image;
-                              // Only show the skeleton if the main image will
-                              // actually change (variants without their own
-                              // images keep the product gallery, so no reload).
-                              if (nextMedia !== activeMedia) setImgLoading(true);
-                              setSelectedAttrs(s => ({ ...s, Options: active ? undefined : v.label }));
-                              setActiveImg(0);
-                            }}
-                            aria-pressed={active}
-                            disabled={!v.inStock}
-                            className={`flex flex-col items-start text-left px-4 py-2.5 rounded-lg border transition-all ${
-                              active ? 'border-gold bg-gold/10' : 'border-cloud hover:border-steel'
-                            } disabled:opacity-40 disabled:cursor-not-allowed`}
-                          >
-                            {console.log(active, "product.gallery")}
-                            <span className={`font-sans text-[13px] font-semibold ${active ? 'text-gold' : 'text-ink'}`}>{v.label}</span>
-                            <span className="font-sans text-[11px] text-steel mt-0.5">{usd2(v.price)}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <VariantCards
+                      items={variants.map((v) => ({
+                        id: v.id,
+                        name: v.label,
+                        price: v.price,
+                        image: v.images?.[0] || product.image,
+                        soldOut: !v.inStock,
+                      }))}
+                      selectedId={selectedVariant?.id}
+                      onSelect={(id) => {
+                        // Clicking the already-selected variant deselects it.
+                        const v = variants.find((x) => x.id === id);
+                        const nextGallery = (v?.images?.length ? v.images : product.gallery) || [];
+                        const nextMedia = nextGallery[0] || product.image;
+                        // Only show the skeleton if the main image will actually change.
+                        if (nextMedia !== activeMedia) setImgLoading(true);
+                        setSelectedAttrs(s => ({ ...s, Options: v ? v.label : undefined }));
+                        setActiveImg(0);
+                      }}
+                      formatPrice={usd2}
+                      theme={VARIANT_THEME}
+                    />
                     {/* {selectedVariant && (
                       <div className="flex flex-col gap-1.5">
                         {selectedVariant.sku && (
@@ -574,6 +626,14 @@ const stockLabel = selectedVariant
             </button>
           </div>
 
+          {!product.inStock && (
+            <NotifyMe productId={product.id} submitNotify={notifyBackInStock} style={{ ...EXTRAS_THEME, marginTop: 0 }} />
+          )}
+
+          <div className={extrasStyles.utilityRow} style={{ ...EXTRAS_THEME, marginTop: 0 }}>
+            <ShareButton title={product.title} />
+          </div>
+
           {/* Secure-checkout notice — checkout is handled by EVOKE Marketplace */}
           <p className="font-sans text-[11px] text-mist leading-relaxed -mt-2 flex items-start gap-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="mt-0.5 shrink-0" aria-hidden="true">
@@ -649,8 +709,16 @@ const stockLabel = selectedVariant
               <div
                 key={i}
                 className="snap-start shrink-0 w-[42%] sm:w-[calc(25%-12px)] overflow-hidden bg-bone aspect-[4/5] cursor-zoom-in"
-                onMouseMove={(e) => handleZoomMove(e, src)}
-                onMouseLeave={handleZoomLeave}
+                role="button"
+                tabIndex={0}
+                aria-label={`Zoom lifestyle image ${i + 1}`}
+                onClick={() => openLifestyleZoom(i)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openLifestyleZoom(i);
+                  }
+                }}
               >
                 <img
                   src={src}
@@ -681,11 +749,14 @@ const stockLabel = selectedVariant
         </div>
       )}
 
-      {/* Shared Zoom Panel */}
-      <div
-        ref={sharedZoomRef}
-        className="shared-zoom-panel fixed top-[20%] left-[48%] w-[500px] h-[500px] border border-cloud bg-white z-[9999] hidden pointer-events-none shadow-2xl bg-no-repeat bg-white"
-      />
+      {recentlyViewed.length > 0 && (
+        <div className="mt-20">
+          <SectionHeader eyebrow="Your History" title="Recently Viewed" align="left" className="mb-10" />
+          <ProductGrid products={recentlyViewed} columns={4} />
+        </div>
+      )}
+
+      {lifestyleZoom.FullscreenViewer}
 
       <style dangerouslySetInnerHTML={{ __html: `
         .shared-zoom-panel {
@@ -695,10 +766,6 @@ const stockLabel = selectedVariant
         .attr-scroll::-webkit-scrollbar { width: 5px; }
         .attr-scroll::-webkit-scrollbar-thumb { background: #C9A84C; border-radius: 9999px; }
         .attr-scroll::-webkit-scrollbar-track { background: transparent; }
-        .variant-scroll { scrollbar-width: thin; scrollbar-color: #C9A84C transparent; }
-        .variant-scroll::-webkit-scrollbar { width: 5px; }
-        .variant-scroll::-webkit-scrollbar-thumb { background: #C9A84C; border-radius: 9999px; }
-        .variant-scroll::-webkit-scrollbar-track { background: transparent; }
         .thumb-scroll { scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
         .thumb-scroll::-webkit-scrollbar { width: 0; height: 0; display: none; }
         @media (max-width: 1400px) {

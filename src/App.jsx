@@ -28,6 +28,7 @@ const NewArrivals            = lazy(() => import('./pages/NewArrivals.jsx'));
 const Bestsellers            = lazy(() => import('./pages/Bestsellers.jsx'));
 const LimitedEditions        = lazy(() => import('./pages/LimitedEditions.jsx'));
 const ProductDetail          = lazy(() => import('./pages/ProductDetail.jsx'));
+const CertificatePreview     = lazy(() => import('./components/product/certificate/CertificatePreview.jsx'));
 const AllProducts            = lazy(() => import('./pages/AllProducts.jsx'));
 const CollectionPage         = lazy(() => import('./pages/CollectionPage.jsx'));
 const About                  = lazy(() => import('./pages/About.jsx'));
@@ -91,6 +92,7 @@ export default function App() {
                 <Route path="/all-products"              element={<AllProducts />} />
                 <Route path="/product/:id/:slug"         element={<ProductDetail />} />
                 <Route path="/product/:slug"             element={<ProductDetail />} />
+                <Route path="/certificate-preview"       element={<CertificatePreview />} />
                 <Route path="/collection/:slug"          element={<CollectionPage />} />
                 <Route path="/collections/:collectionSlug" element={<CollectionPage />} />
                 <Route path="/about"                     element={<About />} />

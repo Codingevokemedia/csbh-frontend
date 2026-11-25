@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import CertificateSection from './certificate/CertificateSection';
+import { buildCertificateRows } from './certificate/certificateRows';
 
 // One label/value row — caller decides whether to render it, so empty fields
 // are simply never passed in (the spec requires hiding blanks, not labelling them).
@@ -19,7 +21,6 @@ export default function ProductTabs({ product, shipping, returns }) {
     "About product",
     "Item details",
     "Certificate",
-    "Reviews",
     "Disclaimer",
     "Return policy",
   ];
@@ -120,29 +121,22 @@ export default function ProductTabs({ product, shipping, returns }) {
           </div>
         );
       case "Certificate": {
-        const coaImage = product.coaImage || product.raw?.ProductCOAImage || product.image;
         return (
-          <div className="tab-content flex justify-center py-10">
-            <div className="relative group cursor-crosshair">
-                <img 
-                    src={coaImage} 
-                    alt="Authenticity Certificate" 
-                    className="w-[550px] rounded-xl border border-cloud shadow-sm transition-all duration-300 group-hover:blur-[2px] group-hover:grayscale-[20%] group-hover:opacity-70"
-                />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-90 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:scale-100 transition-all duration-500 pointer-events-none z-10 bg-white p-5 rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.15)] w-[700px] max-w-[85vw]">
-                    <img src={coaImage} alt="Certificate Enlarged" className="w-full rounded-xl" />
-                </div>
-            </div>
+          <div className="tab-content">
+            <CertificateSection
+              rows={buildCertificateRows({
+                productName: product.title,
+                countryName: product.countryOrigin,
+                brandName: product.brand,
+                categoryName: product.categoryName || product.category,
+                attributes: product.attributes,
+              })}
+              imageUrl={product.raw?.CertificateImageUrl || product.image}
+              imageAlt={product.title}
+            />
           </div>
         );
       }
-      case "Reviews":
-        return (
-          <div className="tab-content text-center py-12">
-            <h3 className="font-display text-3xl mb-4 text-ink font-light">Customer Reviews</h3>
-            <p className="text-mist italic font-sans text-sm">No reviews yet. Be the first to share your experience.</p>
-          </div>
-        );
       case "Disclaimer":
         return (
           <div className="tab-content border border-cloud rounded-xl p-6 sm:p-10 bg-white max-w-4xl">
