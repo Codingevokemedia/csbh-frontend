@@ -3,7 +3,7 @@
 // internal product shape the UI expects. Falls back to bundled mock data if the
 // network/API is unavailable, so the design always renders.
 
-import { apiGet, isMockMode } from './api.js';
+import { apiGet, apiPost, isMockMode } from './api.js';
 import { listHomepageProducts } from './homepageProducts.js';
 import {
   mockProducts,
@@ -52,7 +52,7 @@ const isVideoUrl = (u) => /\.(mp4|webm|mov|m4v|ogg)(\?|#|$)/i.test(String(u || '
 // True when a raw/normalized product belongs to the CS Beverly Hills store.
 // Matches on VendorID (when an allowlist is configured) first, then on an exact
 // StoreName match — works on every endpoint's row shape.
-function isStoreProduct(raw) {
+export function isStoreProduct(raw) {
   if (!raw) return false;
   const vendor = raw.VendorID ?? raw.vendorId ?? null;
   if (VENDOR_TARGETS.size && vendor != null && VENDOR_TARGETS.has(String(vendor))) {
@@ -250,6 +250,7 @@ export function normalizeProduct(raw, catMap = null, subMap = null, attributes =
   return {
     id: String(id),
     title,
+    returnPolicy: raw.ExchangeAndRtnSettings || null,
     // URL handle derived from the product name so links read as the name, not
     // the id (e.g. /product/oceanic-white). getProductBySlug resolves it back to
     // the product; numeric-id links still work for backward compatibility.
@@ -309,25 +310,71 @@ export function normalizeProduct(raw, catMap = null, subMap = null, attributes =
 // ── Store fetch (memoized) ───────────────────────────────────────────────────
 let storeCache = null;
 
+// The catalogue call is slow (several seconds), so the last response is kept in
+// localStorage: repeat visits render from it instantly while a fresh copy loads
+// in the background.
+const STORE_CACHE_KEY = 'csbh.store.v1';
+const STORE_CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
+
+function buildStore(data) {
+  const catMap = new Map(
+    (data.categories || []).map((c) => [Number(c.CategoryID), c.CategoryName]),
+  );
+  const subMap = new Map(
+    (data.subCategoryID || data.subCategories || []).map((s) => [Number(s.SubCategoryID), s.SubCategoryName]),
+  );
+  const rows = Array.isArray(data.result) ? data.result : [];
+  const products = rows.map((r) => normalizeProduct(r, catMap, subMap)).filter(Boolean);
+  return { products, catMap, subMap };
+}
+
+function readCachedStore() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE_CACHE_KEY) || 'null');
+    if (!saved?.data?.result?.length || Date.now() - saved.savedAt > STORE_CACHE_MAX_AGE) return null;
+    return buildStore(saved.data);
+  } catch {
+    return null;
+  }
+}
+
+async function fetchStore() {
+  const res = await apiGet(
+    `/product/getProductsByStoreName/${encodeURIComponent(STORE_NAME)}`,
+  );
+  const data = res?.data ?? res ?? {};
+  const store = buildStore(data);
+  if (store.products.length) {
+    try {
+      const { categories, subCategoryID, subCategories, result } = data;
+      localStorage.setItem(
+        STORE_CACHE_KEY,
+        JSON.stringify({ savedAt: Date.now(), data: { categories, subCategoryID, subCategories, result } }),
+      );
+    } catch {
+      /* storage full or blocked — the in-memory cache still works */
+    }
+  }
+  return store;
+}
+
 // Loads the full CS Beverly Hills catalogue once and builds the category lookup
 // maps. Returns { products, catMap, subMap }. Falls back to mock data on error.
 async function loadStore() {
   if (storeCache) return storeCache;
+
+  const cached = readCachedStore();
+  if (cached) {
+    storeCache = Promise.resolve(cached);
+    fetchStore()
+      .then((fresh) => { if (fresh.products.length) storeCache = Promise.resolve(fresh); })
+      .catch(() => {});
+    return storeCache;
+  }
+
   storeCache = (async () => {
     try {
-      const res = await apiGet(
-        `/product/getProductsByStoreName/${encodeURIComponent(STORE_NAME)}`,
-      );
-      const data = res?.data ?? res ?? {};
-      const catMap = new Map(
-        (data.categories || []).map((c) => [Number(c.CategoryID), c.CategoryName]),
-      );
-      const subMap = new Map(
-        (data.subCategoryID || data.subCategories || []).map((s) => [Number(s.SubCategoryID), s.SubCategoryName]),
-      );
-      const rows = Array.isArray(data.result) ? data.result : [];
-      const products = rows.map((r) => normalizeProduct(r, catMap, subMap)).filter(Boolean);
-      return { products, catMap, subMap };
+      return await fetchStore();
     } catch (err) {
       // Offline / API down — serve mock data so the UI still renders. Surface
       // the real reason so a failed live fetch isn't mistaken for real data.
@@ -345,8 +392,10 @@ async function loadStore() {
 // store. featureType is the backend value: 'bestSeller' | 'newCollections'.
 async function fetchFeaturedScoped(featureType) {
   try {
-    const { catMap, subMap } = await loadStore();
-    const res = await apiGet(`/product/getFeaturedProducts/${featureType}`);
+    const [{ catMap, subMap }, res] = await Promise.all([
+      loadStore(),
+      apiGet(`/product/getFeaturedProducts/${featureType}`),
+    ]);
     const rows = res?.data?.result ?? res?.result ?? [];
     return rows
       .filter(isStoreProduct)
@@ -355,6 +404,62 @@ async function fetchFeaturedScoped(featureType) {
   } catch {
     return [];
   }
+}
+
+const OFFER_LIST_CACHE_MS = 60 * 1000;
+const offerLists = new Map();
+
+// Every page of an offer list (sale / Last Call), fetched at most once a minute
+// and shared by the homepage row and the full page.
+function loadOfferList(path) {
+  const hit = offerLists.get(path);
+  if (hit && Date.now() - hit.at < OFFER_LIST_CACHE_MS) return hit.rows;
+  const rows = (async () => {
+    const all = [];
+    let totalPages = 1;
+    for (let page = 1; page <= totalPages; page++) {
+      const res = await apiGet(`${path}&page=${page}`);
+      totalPages = res?.data?.pagination?.totalPages || 1;
+      all.push(...(res?.data?.result || []));
+    }
+    return all;
+  })().catch(() => {
+    offerLists.delete(path);
+    return [];
+  });
+  offerLists.set(path, { at: Date.now(), rows });
+  return rows;
+}
+
+// Keeps only this store's products and adds the sale price, old price and end date.
+function toStoreOfferCards(rows, products, { onSaleOnly }) {
+  const own = new Map(products.map((p) => [String(p.id), p]));
+  return rows.flatMap((raw) => {
+    const product = isStoreProduct(raw) && own.get(String(raw.ProductID));
+    if (!product) return [];
+    const price = Number(raw.PriceInUSD) || product.price;
+    const compareAtPrice = Number(raw.RegularPriceInUSD);
+    const onSale = compareAtPrice > price;
+    if (onSaleOnly && !onSale) return [];
+    return [{
+      ...product,
+      price,
+      compareAtPrice: onSale ? compareAtPrice : null,
+      offerEndsAt: onSale ? raw.ProductDiscount?.EndDate || null : null,
+    }];
+  });
+}
+
+// Store products that are on sale right now, biggest discount first.
+async function getSpecialOffers(products) {
+  const rows = await loadOfferList('/product/getSaleProducts?limit=100&sort=discount');
+  return toStoreOfferCards(rows, products, { onSaleOnly: true });
+}
+
+// Store products an admin added to Last Call, in the admin's order.
+async function getLastCall(products) {
+  const rows = await loadOfferList('/product/getFeaturedProducts/lastCall?pageSize=100');
+  return toStoreOfferCards(rows, products, { onSaleOnly: false });
 }
 
 function byKeyword(products, regex) {
@@ -385,6 +490,8 @@ export async function getProductsByCollection(collectionSlug) {
   }
 
   const { products } = await loadStore();
+  if (collectionSlug === 'special-offers') return getSpecialOffers(products);
+  if (collectionSlug === 'last-call') return getLastCall(products);
   let list;
   switch (collectionSlug) {
     case 'bestsellers':
@@ -491,9 +598,12 @@ export async function getHomepageSection(section) {
 export async function getProductById(productId) {
   if (isMockMode()) return getMockProductById(productId);
 
+  // Start the detail request alongside the catalogue instead of after it.
+  const detailRequest = apiGet(`/product/getProductById/${productId}`);
+  detailRequest.catch(() => {});
   const { catMap, subMap } = await loadStore();
   try {
-    const res = await apiGet(`/product/getProductById/${productId}`);
+    const res = await detailRequest;
     const root = res?.data ?? res ?? {};
     const details = root.ProductDetails || root.product || null;
     if (details) {
@@ -519,6 +629,7 @@ export async function getProductById(productId) {
         PhotosAndVideos: photos,
         LifestyleImages: lifestyle,
         PageBuilderData: pageBuilder,
+        ExchangeAndRtnSettings: root.ExchangeAndRtnSettings || null,
       };
       return normalizeProduct(merged, catMap, subMap, attributes);
     }
@@ -663,10 +774,12 @@ export async function searchProducts(query) {
     );
   }
 
+  const params = new URLSearchParams({ searchText: q, storeName: STORE_NAME });
+  const searchRequest = apiGet(`/product/searchCategoriesAndProducts/search?${params.toString()}`);
+  searchRequest.catch(() => {});
   const { catMap, subMap, products } = await loadStore();
   try {
-    const params = new URLSearchParams({ searchText: q, storeName: STORE_NAME });
-    const res = await apiGet(`/product/searchCategoriesAndProducts/search?${params.toString()}`);
+    const res = await searchRequest;
     const rows = res?.data?.Products ?? res?.Products ?? [];
     const list = rows.map((r) => normalizeProduct(r, catMap, subMap)).filter(Boolean);
     if (list.length) return list;
@@ -679,4 +792,16 @@ export async function searchProducts(query) {
       p.title.toLowerCase().includes(lc) ||
       p.description.toLowerCase().includes(lc),
   );
+}
+
+// Coupon offers for one product (public; same list the Evoke product page shows).
+export async function getProductOffers(productId) {
+  if (isMockMode()) return [];
+  const res = await apiGet(`/product/getCouponCodeByProductId/${productId}`);
+  return res?.data?.CouponCodes || [];
+}
+
+// Back-in-stock request for a sold-out product (POST /product/notify).
+export async function notifyBackInStock({ productId, email }) {
+  return apiPost('/product/notify', { productId, email });
 }

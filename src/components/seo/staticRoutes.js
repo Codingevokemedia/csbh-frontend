@@ -17,6 +17,8 @@ export const STATIC_ROUTES = [
   { path: '/new-arrivals',              title: 'New Arrivals',               description: "The latest luxury timepieces and jewelry from CS Beverly Hills.", priority: 0.8 },
   { path: '/bestsellers',               title: 'Bestsellers',                description: "The most-loved CS Beverly Hills timepieces and jewelry.", priority: 0.8 },
   { path: '/limited-editions',          title: 'Limited Editions',           description: "Exclusive limited-edition timepieces from CS Beverly Hills.", priority: 0.8 },
+  { path: '/last-call',                 title: 'Last Call',                  description: "Final chances on CS Beverly Hills pieces leaving the collection soon.", priority: 0.7 },
+  { path: '/special-offers',            title: 'Special Offers',             description: "CS Beverly Hills timepieces and jewelry on sale for a limited time.", priority: 0.7 },
   { path: '/all-products',              title: 'All Products',               description: "Browse the complete CS Beverly Hills collection of timepieces, cufflinks and jewelry.", priority: 0.8 },
   { path: '/about',                     title: 'About Us',                   description: "The story of CS Beverly Hills — Swiss-made timepieces and handmade jewelry from Los Angeles.", priority: 0.8 },
   { path: '/contact',                   title: 'Contact Us',                 description: "Get in touch with CS Beverly Hills.", priority: 0.8 },

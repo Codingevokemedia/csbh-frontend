@@ -14,7 +14,7 @@ const MOCK_CART_KEY = 'csbh.mock.cart';
 // Builds the URL that "Add to Cart" sends the shopper to. The EVOKE marketplace
 // cart page reads addProductId/qty/variantId/source, signs the user in if
 // needed, and adds the item before rendering the cart — same flow as Kich.
-export function buildEvokeAddToCartUrl({ productId, variantId, quantity = 1, attributes } = {}) {
+export function buildEvokeAddToCartUrl({ productId, variantId, quantity = 1, attributes, coupon } = {}) {
   if (productId == null) return CART_URL;
   const params = new URLSearchParams();
   params.set('addProductId', String(productId));
@@ -29,6 +29,7 @@ export function buildEvokeAddToCartUrl({ productId, variantId, quantity = 1, att
   if (attributes && Object.keys(attributes).length) {
     params.set('attributes', JSON.stringify(attributes));
   }
+  if (coupon) params.set('coupon', String(coupon));
   params.set('source', CART_SOURCE);
   const sep = CART_URL.includes('?') ? '&' : '?';
   return `${CART_URL}${sep}${params.toString()}`;

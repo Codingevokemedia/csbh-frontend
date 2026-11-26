@@ -24,7 +24,7 @@ export function CartProvider({ children }) {
   // click's user gesture — so popup blockers allow it; we point it at the cart
   // URL only after the success flash. (Opening a new tab later, from inside the
   // setTimeout, would otherwise be blocked.)
-  const addAndRedirect = useCallback(async ({ productId, variantId, quantity = 1, productTitle, attributes }) => {
+  const addAndRedirect = useCallback(async ({ productId, variantId, quantity = 1, productTitle, attributes, coupon }) => {
     const cartTab = typeof window !== 'undefined' ? window.open('', '_blank') : null;
     setLoading(true);
     try {
@@ -33,7 +33,7 @@ export function CartProvider({ children }) {
       await fetchCart();
       setTimeout(() => {
         setAddedItem(null);
-        const url = buildEvokeAddToCartUrl({ productId, variantId, quantity, attributes });
+        const url = buildEvokeAddToCartUrl({ productId, variantId, quantity, attributes, coupon });
         if (cartTab && !cartTab.closed) cartTab.location.href = url;
         else window.open(url, '_blank'); // fallback if the tab was blocked/closed
       }, 1200);

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import CertificateSection from './certificate/CertificateSection';
+import { buildCertificateRows } from './certificate/certificateRows';
 
 // One label/value row — caller decides whether to render it, so empty fields
 // are simply never passed in (the spec requires hiding blanks, not labelling them).
@@ -11,6 +13,38 @@ function DetailRow({ label, value }) {
   );
 }
 
+// Returns / Exchanges / Return window rows from the seller's ExchangeAndRtnSettings.
+function returnPolicyItems(policy) {
+  const returnsOk = Boolean(policy.IsReturnsAccepted);
+  const exchangesOk = Boolean(policy.IsExchangesAccepted);
+  const days = Number(policy.MaxDaystoReturn);
+  const hasWindow = returnsOk && Number.isFinite(days) && days > 0;
+  return [
+    {
+      label: 'Returns',
+      ok: returnsOk,
+      value: returnsOk ? 'Accepted' : 'Not accepted',
+      hint: returnsOk ? 'You can request a return for this item.' : 'This seller does not accept returns.',
+    },
+    {
+      label: 'Exchanges',
+      ok: exchangesOk,
+      value: exchangesOk ? 'Accepted' : 'Not accepted',
+      hint: exchangesOk ? 'Size or item exchanges may be available.' : 'This seller does not accept exchanges.',
+    },
+    {
+      label: 'Return window',
+      ok: hasWindow,
+      value: hasWindow ? `${days} day${days === 1 ? '' : 's'}` : returnsOk ? 'Not specified' : 'N/A',
+      hint: hasWindow
+        ? 'Counted from the delivery date.'
+        : returnsOk
+        ? 'Ask the seller for the exact timeframe.'
+        : 'No return window when returns are closed.',
+    },
+  ];
+}
+
 const isVideoUrl = (url) => /\.(mp4|webm|mov|ogg|m4v)(\?|#|$)/i.test(String(url || ''));
 
 export default function ProductTabs({ product, shipping, returns }) {
@@ -19,7 +53,6 @@ export default function ProductTabs({ product, shipping, returns }) {
     "About product",
     "Item details",
     "Certificate",
-    "Reviews",
     "Disclaimer",
     "Return policy",
   ];
@@ -120,29 +153,22 @@ export default function ProductTabs({ product, shipping, returns }) {
           </div>
         );
       case "Certificate": {
-        const coaImage = product.coaImage || product.raw?.ProductCOAImage || product.image;
         return (
-          <div className="tab-content flex justify-center py-10">
-            <div className="relative group cursor-crosshair">
-                <img 
-                    src={coaImage} 
-                    alt="Authenticity Certificate" 
-                    className="w-[550px] rounded-xl border border-cloud shadow-sm transition-all duration-300 group-hover:blur-[2px] group-hover:grayscale-[20%] group-hover:opacity-70"
-                />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-90 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:scale-100 transition-all duration-500 pointer-events-none z-10 bg-white p-5 rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.15)] w-[700px] max-w-[85vw]">
-                    <img src={coaImage} alt="Certificate Enlarged" className="w-full rounded-xl" />
-                </div>
-            </div>
+          <div className="tab-content">
+            <CertificateSection
+              rows={buildCertificateRows({
+                productName: product.title,
+                countryName: product.countryOrigin,
+                brandName: product.brand,
+                categoryName: product.categoryName || product.category,
+                attributes: product.attributes,
+              })}
+              imageUrl={product.raw?.CertificateImageUrl || product.image}
+              imageAlt={product.title}
+            />
           </div>
         );
       }
-      case "Reviews":
-        return (
-          <div className="tab-content text-center py-12">
-            <h3 className="font-display text-3xl mb-4 text-ink font-light">Customer Reviews</h3>
-            <p className="text-mist italic font-sans text-sm">No reviews yet. Be the first to share your experience.</p>
-          </div>
-        );
       case "Disclaimer":
         return (
           <div className="tab-content border border-cloud rounded-xl p-6 sm:p-10 bg-white max-w-4xl">
@@ -160,31 +186,37 @@ export default function ProductTabs({ product, shipping, returns }) {
         );
       case "Return policy":
         return (
-          <div className="tab-content max-w-4xl">
-             <div className="flex flex-col gap-6">
-                <div className="flex items-center gap-4">
-                    <span className="w-6 h-6 rounded-full bg-[#e6f4ea] text-[#34a853] flex items-center justify-center font-bold text-[10px]">✓</span>
-                    <span className="text-steel font-sans text-sm tracking-wide">Returns are <b className="font-semibold text-ink">accepted</b></span>
-                </div>
-                <div className="flex items-center gap-4">
-                    <span className="w-6 h-6 rounded-full bg-[#e6f4ea] text-[#34a853] flex items-center justify-center font-bold text-[10px]">✓</span>
-                    <span className="text-steel font-sans text-sm tracking-wide">Exchanges are <b className="font-semibold text-ink">accepted</b></span>
-                </div>
-                <div className="flex items-center gap-4">
-                    <span className="w-6 h-6 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center font-bold text-[10px]">i</span>
-                    <span className="text-steel font-sans text-sm tracking-wide">Return window: <b className="font-semibold text-ink">30 days</b></span>
-                </div>
-                
-                <div className="mt-8 space-y-8">
-                    <div className="border-t border-cloud pt-8">
-                        <h4 className="font-sans text-[10px] tracking-widest uppercase text-mist mb-3">Warranty & Returns</h4>
-                        <div className="font-sans text-sm text-steel leading-relaxed">{returns}</div>
+          <div className="tab-content flex flex-col gap-8 max-w-4xl">
+            <div className="border border-cloud rounded-xl p-6 sm:p-10 bg-white">
+              <h3 className="font-display text-3xl mb-8 text-ink font-light">Return Policy</h3>
+              {product.returnPolicy ? (
+                <div className="flex flex-col gap-5">
+                  {returnPolicyItems(product.returnPolicy).map((item) => (
+                    <div key={item.label} className="grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-2 sm:gap-5 items-start">
+                      <span className="text-[11px] tracking-widest uppercase text-mist font-sans">{item.label}</span>
+                      <div>
+                        <span className="inline-flex items-center gap-2 font-sans text-sm font-medium text-ink">
+                          <span className={`w-2 h-2 rounded-full ${item.ok ? 'bg-gold' : 'bg-cloud'}`} />
+                          {item.value}
+                        </span>
+                        <p className="font-sans text-[13px] text-mist mt-1">{item.hint}</p>
+                      </div>
                     </div>
-                    <div className="border-t border-cloud pt-8">
-                        <h4 className="font-sans text-[10px] tracking-widest uppercase text-mist mb-3">Shipping Information</h4>
-                        <div className="font-sans text-sm text-steel leading-relaxed">{shipping}</div>
-                    </div>
+                  ))}
                 </div>
+              ) : (
+                <p className="font-sans text-sm text-steel">No return policy information is available for this product yet.</p>
+              )}
+            </div>
+            {returns && (
+              <div>
+                <h4 className="font-sans text-[10px] tracking-widest uppercase text-mist mb-3">Warranty</h4>
+                <div className="font-sans text-sm text-steel leading-relaxed">{returns}</div>
+              </div>
+            )}
+            <div>
+              <h4 className="font-sans text-[10px] tracking-widest uppercase text-mist mb-3">Shipping Information</h4>
+              <div className="font-sans text-sm text-steel leading-relaxed">{shipping}</div>
             </div>
           </div>
         );
