@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useWishlist } from '../../contexts/WishlistContext.jsx';
 import { useCart } from '../../contexts/CartContext.jsx';
+import OfferEnds from './OfferEnds.jsx';
 
 export default function ProductCard({ product, onQuickView }) {
   const { isWishlisted, toggle } = useWishlist();
@@ -82,7 +83,7 @@ export default function ProductCard({ product, onQuickView }) {
 
         {/* Info */}
         <div className="pt-2 sm:pt-3.5 px-0.5 sm:px-1 flex flex-col gap-1 sm:gap-1.5">
-          <h3 className="font-sans text-[9px] sm:text-[11px] font-bold tracking-widest uppercase text-ink leading-snug line-clamp-2">
+          <h3 className="font-sans text-[9px] sm:text-[11px] font-bold tracking-widest uppercase text-ink leading-snug truncate" title={product.title}>
             {product.title}
           </h3>
           <div className="flex items-center gap-1.5">
@@ -91,6 +92,9 @@ export default function ProductCard({ product, onQuickView }) {
               <span className="font-sans text-[10px] sm:text-xs text-mist line-through">{compareFormatted}</span>
             )}
           </div>
+          {product.offerEndsAt && (
+            <OfferEnds endsAt={product.offerEndsAt} className="font-sans text-[9px] sm:text-[10px] text-gold tracking-wide" />
+          )}
           {/* Availability — only show when meaningful (low stock / sold out) */}
           {product.inStock && product.stockQuantity != null && product.stockQuantity > 0 && product.stockQuantity <= 5 && (
             <span className="font-sans text-[9px] sm:text-[10px] text-gold tracking-wide">Only {product.stockQuantity} left</span>

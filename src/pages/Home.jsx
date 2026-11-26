@@ -48,10 +48,13 @@ export default function Home() {
   const [bestsellers, setBestsellers]       = useState([]);
   const [mensProducts, setMensProducts]     = useState([]);
   const [womensProducts, setWomensProducts] = useState([]);
+  const [specialOffers, setSpecialOffers]   = useState([]);
+  const [lastCall, setLastCall]             = useState([]);
   const [template, setTemplate]             = useState(null);
   const [loading, setLoading]               = useState(true);
   const [isMuted, setIsMuted]               = useState(true);
   const videoRef                            = useRef(null);
+  const offersRef                           = useRef(null);
 
   function toggleMute() {
     if (videoRef.current) {
@@ -59,6 +62,30 @@ export default function Home() {
       setIsMuted(videoRef.current.muted);
     }
   }
+
+  // Offer rows load only when the visitor scrolls near them.
+  useEffect(() => {
+    const loadOffers = () => {
+      getProductsByCollection('special-offers')
+        .then((list) => setSpecialOffers(list.slice(0, 4)))
+        .catch(() => {});
+      getProductsByCollection('last-call')
+        .then((list) => setLastCall(list.slice(0, 4)))
+        .catch(() => {});
+    };
+    const el = offersRef.current;
+    if (!el || !('IntersectionObserver' in window)) {
+      loadOffers();
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting) return;
+      observer.disconnect();
+      loadOffers();
+    }, { rootMargin: '600px 0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -249,6 +276,39 @@ export default function Home() {
           </CTALink>
         </div>
       </section>
+
+      {/* Special offers — hidden when nothing is on sale */}
+      <div ref={offersRef} aria-hidden="true" />
+      {specialOffers.length > 0 && (
+        <section className="py-12 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-[1400px] 2xl:max-w-[1600px] mx-auto w-full">
+          <SectionHeader eyebrow="Limited Time" title="Special Offers" className="mb-12" />
+          <ProductGrid products={specialOffers} columns={4} />
+          <div className="mt-10 text-center">
+            <CTALink
+              to="/special-offers"
+              className="inline-flex items-center gap-2 font-sans text-[11px] font-semibold tracking-widest uppercase border border-ink text-ink px-8 py-4 hover:bg-ink hover:text-white active:scale-[0.97] transition-all duration-300"
+            >
+              View All Offers →
+            </CTALink>
+          </div>
+        </section>
+      )}
+
+      {/* Last Call — hidden when the store has nothing in it */}
+      {lastCall.length > 0 && (
+        <section className="py-12 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-[1400px] 2xl:max-w-[1600px] mx-auto w-full">
+          <SectionHeader eyebrow="Final Chance" title="Last Call" className="mb-12" />
+          <ProductGrid products={lastCall} columns={4} />
+          <div className="mt-10 text-center">
+            <CTALink
+              to="/last-call"
+              className="inline-flex items-center gap-2 font-sans text-[11px] font-semibold tracking-widest uppercase border border-ink text-ink px-8 py-4 hover:bg-ink hover:text-white active:scale-[0.97] transition-all duration-300"
+            >
+              View All Last Call →
+            </CTALink>
+          </div>
+        </section>
+      )}
 
       {/* Banner: Women's */}
       <section className="w-full relative">

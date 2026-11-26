@@ -27,6 +27,8 @@ const WomensJewelry          = lazy(() => import('./pages/WomensJewelry.jsx'));
 const NewArrivals            = lazy(() => import('./pages/NewArrivals.jsx'));
 const Bestsellers            = lazy(() => import('./pages/Bestsellers.jsx'));
 const LimitedEditions        = lazy(() => import('./pages/LimitedEditions.jsx'));
+const SpecialOffers          = lazy(() => import('./pages/SpecialOffers.jsx'));
+const LastCall               = lazy(() => import('./pages/LastCall.jsx'));
 const ProductDetail          = lazy(() => import('./pages/ProductDetail.jsx'));
 const CertificatePreview     = lazy(() => import('./components/product/certificate/CertificatePreview.jsx'));
 const AllProducts            = lazy(() => import('./pages/AllProducts.jsx'));
@@ -89,6 +91,8 @@ export default function App() {
                 <Route path="/new-arrivals"              element={<NewArrivals />} />
                 <Route path="/bestsellers"               element={<Bestsellers />} />
                 <Route path="/limited-editions"          element={<LimitedEditions />} />
+                <Route path="/special-offers"            element={<SpecialOffers />} />
+                <Route path="/last-call"                 element={<LastCall />} />
                 <Route path="/all-products"              element={<AllProducts />} />
                 <Route path="/product/:id/:slug"         element={<ProductDetail />} />
                 <Route path="/product/:slug"             element={<ProductDetail />} />

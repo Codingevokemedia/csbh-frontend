@@ -237,7 +237,7 @@ export default function ProductDetail() {
   }
 
   const shippingContent = <p className="font-sans text-sm text-steel leading-relaxed">Complimentary shipping on all orders. Dispatched within 1–2 business days. Signed delivery required for all luxury timepieces.</p>;
-  const returnsContent = <p className="font-sans text-sm text-steel leading-relaxed">{product.warranty ? `All CS Beverly Hills timepieces carry a ${product.warranty} manufacturer warranty. ` : ''}30-day return window on unworn pieces in original packaging.</p>;
+  const returnsContent = product.warranty ? <p className="font-sans text-sm text-steel leading-relaxed">All CS Beverly Hills timepieces carry a {product.warranty} manufacturer warranty.</p> : null;
 
   // Selectable attribute groups (Watch Type, Band Color, …) shown beneath the
   // description. Empty when the backend returns no attributes. Long lists scroll

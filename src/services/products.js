@@ -250,6 +250,7 @@ export function normalizeProduct(raw, catMap = null, subMap = null, attributes =
   return {
     id: String(id),
     title,
+    returnPolicy: raw.ExchangeAndRtnSettings || null,
     // URL handle derived from the product name so links read as the name, not
     // the id (e.g. /product/oceanic-white). getProductBySlug resolves it back to
     // the product; numeric-id links still work for backward compatibility.
@@ -405,6 +406,62 @@ async function fetchFeaturedScoped(featureType) {
   }
 }
 
+const OFFER_LIST_CACHE_MS = 60 * 1000;
+const offerLists = new Map();
+
+// Every page of an offer list (sale / Last Call), fetched at most once a minute
+// and shared by the homepage row and the full page.
+function loadOfferList(path) {
+  const hit = offerLists.get(path);
+  if (hit && Date.now() - hit.at < OFFER_LIST_CACHE_MS) return hit.rows;
+  const rows = (async () => {
+    const all = [];
+    let totalPages = 1;
+    for (let page = 1; page <= totalPages; page++) {
+      const res = await apiGet(`${path}&page=${page}`);
+      totalPages = res?.data?.pagination?.totalPages || 1;
+      all.push(...(res?.data?.result || []));
+    }
+    return all;
+  })().catch(() => {
+    offerLists.delete(path);
+    return [];
+  });
+  offerLists.set(path, { at: Date.now(), rows });
+  return rows;
+}
+
+// Keeps only this store's products and adds the sale price, old price and end date.
+function toStoreOfferCards(rows, products, { onSaleOnly }) {
+  const own = new Map(products.map((p) => [String(p.id), p]));
+  return rows.flatMap((raw) => {
+    const product = isStoreProduct(raw) && own.get(String(raw.ProductID));
+    if (!product) return [];
+    const price = Number(raw.PriceInUSD) || product.price;
+    const compareAtPrice = Number(raw.RegularPriceInUSD);
+    const onSale = compareAtPrice > price;
+    if (onSaleOnly && !onSale) return [];
+    return [{
+      ...product,
+      price,
+      compareAtPrice: onSale ? compareAtPrice : null,
+      offerEndsAt: onSale ? raw.ProductDiscount?.EndDate || null : null,
+    }];
+  });
+}
+
+// Store products that are on sale right now, biggest discount first.
+async function getSpecialOffers(products) {
+  const rows = await loadOfferList('/product/getSaleProducts?limit=100&sort=discount');
+  return toStoreOfferCards(rows, products, { onSaleOnly: true });
+}
+
+// Store products an admin added to Last Call, in the admin's order.
+async function getLastCall(products) {
+  const rows = await loadOfferList('/product/getFeaturedProducts/lastCall?pageSize=100');
+  return toStoreOfferCards(rows, products, { onSaleOnly: false });
+}
+
 function byKeyword(products, regex) {
   return products.filter((p) => regex.test(`${p.title} ${p.description}`.toLowerCase()));
 }
@@ -433,6 +490,8 @@ export async function getProductsByCollection(collectionSlug) {
   }
 
   const { products } = await loadStore();
+  if (collectionSlug === 'special-offers') return getSpecialOffers(products);
+  if (collectionSlug === 'last-call') return getLastCall(products);
   let list;
   switch (collectionSlug) {
     case 'bestsellers':
@@ -570,6 +629,7 @@ export async function getProductById(productId) {
         PhotosAndVideos: photos,
         LifestyleImages: lifestyle,
         PageBuilderData: pageBuilder,
+        ExchangeAndRtnSettings: root.ExchangeAndRtnSettings || null,
       };
       return normalizeProduct(merged, catMap, subMap, attributes);
     }
